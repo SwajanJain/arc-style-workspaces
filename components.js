@@ -74,6 +74,20 @@ class FavoritesGrid {
         item.innerHTML = `<div class="fallback-icon">${getDomainInitial(fav.url)}</div>`;
       }
 
+      // Add close button
+      const closeBtn = document.createElement('div');
+      closeBtn.className = 'close-btn';
+      closeBtn.innerHTML = `
+        <svg viewBox="0 0 10 10" fill="none">
+          <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      `;
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.onRemove(fav.id);
+      });
+      item.appendChild(closeBtn);
+
       item.addEventListener('click', () => this.onClick(fav));
 
       // Right-click for context menu
