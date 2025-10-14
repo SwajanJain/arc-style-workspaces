@@ -54,16 +54,17 @@ body {
   line-height: 1.5;
   color: var(--text-primary);
   background: var(--bg-primary);
-  width: 240px;
+  width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  border-right: 1px solid var(--border-medium);
 }
 
 #app {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  max-width: 240px;
+  margin: 0 auto;
 }
 
 /* Header */
