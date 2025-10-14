@@ -229,7 +229,7 @@ body {
   height: 48px;
   border: none;
   border-radius: var(--radius-md);
-  background: transparent;
+  background: var(--bg-subtle);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -238,7 +238,10 @@ body {
   position: relative;
 }
 
-.fav-item:hover,
+.fav-item:hover {
+  background: var(--bg-hover);
+}
+
 .fav-add-btn:hover {
   background: var(--bg-hover);
 }
@@ -294,7 +297,6 @@ body {
   color: var(--text-muted);
   border: 1px dashed var(--border-dashed);
   border-radius: var(--radius-md);
-  background: var(--bg-subtle);
 }
 
 .fav-add-btn:hover {
