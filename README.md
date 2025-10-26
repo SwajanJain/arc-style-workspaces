@@ -171,4 +171,18 @@ Built for everyone who loves Arc's UX but wants AI + choice of browser.
 
 ---
 
+## 🔒 Privacy
+
+All data is stored **locally on your device**. We don't collect, track, or transmit any data.
+
+[Read our full Privacy Policy](./PRIVACY.md)
+
+---
+
+## 📄 License
+
+MIT License - Free to use, modify, and distribute.
+
+---
+
 **Install today and reclaim your browsing workspace.** 🚀
