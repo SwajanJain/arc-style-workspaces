@@ -262,10 +262,10 @@ Works on **any Chromium browser**: Chrome, Brave, Edge, Comet, Atlas, Arc (if yo
 - Gmail, Slack, Linear, Notion, Calendar (one-click access)
 
 **Office Workspace:**
-- Feed → `news.almaconnect.com/feed`
-- Prospects → `news.almaconnect.com/prospects`
-- Directory → `news.almaconnect.com/directory`
-- Metabase → Analytics dashboard
+- Dashboard → `company.com/dashboard`
+- Analytics → `company.com/analytics`
+- Reports → `company.com/reports`
+- Admin Panel → Internal tools
 
 **Personal Workspace:**
 - Twitter, Reddit, Banking, Shopping
@@ -274,7 +274,7 @@ Works on **any Chromium browser**: Chrome, Brave, Edge, Comet, Atlas, Arc (if yo
 - Click "Office" workspace items → All work tools in their bound tabs
 - Click Slack → **Focuses existing Slack** (no more duplicates!)
 - Collapse "Personal" when working → Clean workspace
-- Navigate `/feed` → `/admin` → Click Feed again → **Returns to same tab!**
+- Navigate `/dashboard` → `/settings` → Click Dashboard again → **Returns to same tab!**
 
 **Time saved:** 10+ minutes/day finding and managing tabs.
 
