@@ -8,9 +8,15 @@ const DEFAULT_STATE = {
   favorites: [],
   workspaces: {},
   preferences: {
-    openBehavior: 'same-tab', // 'same-tab' | 'new-tab' | 'workspace-window'
+    openBehavior: 'smart-switch', // 'same-tab' | 'new-tab' | 'workspace-window' | 'smart-switch'
     showOpenTabs: false,
-    themeDensity: 'cozy' // 'compact' | 'cozy'
+    themeDensity: 'cozy', // 'compact' | 'cozy'
+    // Smart switching preferences
+    defaultMatchMode: 'prefix', // 'exact' | 'prefix' | 'domain' | 'pattern'
+    multiWindowBehavior: 'focus', // 'focus' | 'adopt'
+    enableCycleOnReclick: true,
+    cycleCooldown: 1500, // milliseconds
+    stripTrackingParams: true
   }
 };
 
@@ -60,7 +66,14 @@ const Storage = {
         id: crypto.randomUUID(),
         url: fav.url,
         title: fav.title || new URL(fav.url).hostname,
-        icon: fav.icon || null
+        icon: fav.icon || null,
+        // Smart switching properties
+        matchMode: fav.matchMode || null, // null = use global default
+        matchPattern: fav.matchPattern || null,
+        openBehavior: fav.openBehavior || null, // null = use global default
+        multiWindowBehavior: fav.multiWindowBehavior || null,
+        lastBoundTabId: null,
+        lastBoundAt: null
       }]
     }));
   },
@@ -150,7 +163,10 @@ const Storage = {
               id: itemId,
               url: item.url,
               alias: item.alias || null,
-              icon: item.icon || null
+              icon: item.icon || null,
+              // Tab binding cache
+              lastBoundTabId: null,
+              lastBoundAt: null
             }
           ]
         }

@@ -88,7 +88,7 @@ class FavoritesGrid {
       });
       item.appendChild(closeBtn);
 
-      item.addEventListener('click', () => this.onClick(fav));
+      item.addEventListener('click', (e) => this.onClick(fav, null, e));
 
       // Right-click for context menu
       item.addEventListener('contextmenu', (e) => {
@@ -254,8 +254,8 @@ class WorkspacesList {
     div.appendChild(content);
 
     // Click handler
-    div.addEventListener('click', () => {
-      this.callbacks.onOpenItem(item);
+    div.addEventListener('click', (e) => {
+      this.callbacks.onOpenItem(item, null, e);
     });
 
     // Context menu

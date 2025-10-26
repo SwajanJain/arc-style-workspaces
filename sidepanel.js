@@ -124,9 +124,51 @@ async function handleRemoveFavorite(id) {
   renderFavorites();
 }
 
-function handleClickFavorite(fav, mode = null) {
+async function handleClickFavorite(fav, mode = null, event = null) {
   const openMode = mode || state.preferences.openBehavior;
-  openUrl(fav.url, openMode);
+
+  // Smart switching enabled?
+  if (openMode === 'smart-switch' && event) {
+    // Detect keyboard modifiers
+    const modifiers = {
+      shift: event.shiftKey,        // Force new tab
+      cmd: event.metaKey || event.ctrlKey,  // Background tab
+      alt: event.altKey             // Cycle immediately
+    };
+
+    try {
+      const response = await chrome.runtime.sendMessage({
+        type: 'favorite:switch',
+        payload: {
+          favoriteId: fav.id,
+          modifiers
+        }
+      });
+
+      if (response && !response.ok) {
+        console.error('[SmartSwitch] Failed:', response.error);
+        // Fallback to simple open
+        openUrl(fav.url, 'new-tab');
+        return;
+      }
+
+      // Log action
+      if (response?.action === 'cycled') {
+        console.log(`[SmartSwitch] Cycled to next ${fav.title || 'tab'}`);
+      } else if (response?.action === 'focused') {
+        console.log(`[SmartSwitch] Focused existing ${fav.title || 'tab'}`);
+      } else if (response?.action === 'created') {
+        console.log(`[SmartSwitch] Created new ${fav.title || 'tab'}`);
+      }
+    } catch (error) {
+      console.warn('[SmartSwitch] Error, falling back:', error);
+      // Fallback to simple open
+      openUrl(fav.url, 'new-tab');
+    }
+  } else {
+    // Regular open behavior
+    openUrl(fav.url, openMode);
+  }
 }
 
 // Workspace handlers
@@ -225,9 +267,103 @@ async function handleAddWorkspaceItem(workspaceId) {
   });
 }
 
-function handleOpenWorkspaceItem(item, mode = null) {
+async function handleOpenWorkspaceItem(item, mode = null, event = null) {
   const openMode = mode || state.preferences.openBehavior;
-  openUrl(item.url, openMode);
+
+  // Smart switching enabled?
+  if (openMode === 'smart-switch' && event) {
+    // Shift+Click: Force new tab (clear binding)
+    if (event.shiftKey) {
+      const newTab = await chrome.tabs.create({ url: item.url });
+      await updateWorkspaceItemBinding(item.id, newTab.id);
+      console.log(`[SmartSwitch] Force new tab for ${item.alias || 'workspace item'}`);
+      return;
+    }
+
+    try {
+      // Check binding cache first (Arc way)
+      if (item.lastBoundTabId) {
+        const boundTab = await chrome.tabs.get(item.lastBoundTabId).catch(() => null);
+
+        if (boundTab) {
+          // Bound tab still exists - focus it (regardless of URL!)
+          await chrome.tabs.update(boundTab.id, { active: true });
+
+          // Bring window to front if needed
+          if (boundTab.windowId) {
+            await chrome.windows.update(boundTab.windowId, { focused: true });
+          }
+
+          console.log(`[SmartSwitch] Focused bound tab ${item.alias || 'workspace item'} at ${boundTab.url}`);
+          return;
+        } else {
+          // Bound tab was closed - clear binding
+          await updateWorkspaceItemBinding(item.id, null);
+        }
+      }
+
+      // No valid binding - try to find matching tab by URL (fallback)
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      const matchingTab = tabs.find(tab => {
+        if (!tab.url) return false;
+        const canonicalTab = canonicalizeUrl(tab.url);
+        const canonicalItem = canonicalizeUrl(item.url);
+        return canonicalTab.startsWith(canonicalItem);
+      });
+
+      if (matchingTab) {
+        // Found matching tab - focus it and bind it
+        await chrome.tabs.update(matchingTab.id, { active: true });
+        await updateWorkspaceItemBinding(item.id, matchingTab.id);
+        console.log(`[SmartSwitch] Focused existing ${item.alias || 'workspace item'}`);
+      } else {
+        // No match - create new tab and bind it
+        const newTab = await chrome.tabs.create({ url: item.url });
+        await updateWorkspaceItemBinding(item.id, newTab.id);
+        console.log(`[SmartSwitch] Created new ${item.alias || 'workspace item'}`);
+      }
+    } catch (error) {
+      console.warn('[SmartSwitch] Error, falling back:', error);
+      openUrl(item.url, 'new-tab');
+    }
+  } else {
+    // Regular open behavior
+    openUrl(item.url, openMode);
+  }
+}
+
+// Helper to update workspace item binding
+async function updateWorkspaceItemBinding(itemId, tabId) {
+  // Find which workspace contains this item
+  for (const [workspaceId, workspace] of Object.entries(state.workspaces)) {
+    const itemIndex = workspace.items.findIndex(i => i.id === itemId);
+    if (itemIndex !== -1) {
+      await Storage.updateWorkspaceItem(workspaceId, itemId, {
+        lastBoundTabId: tabId,
+        lastBoundAt: tabId ? Date.now() : null
+      });
+      // Refresh state
+      state = await Storage.getState();
+      return;
+    }
+  }
+}
+
+// Helper function to canonicalize URLs (same logic as in tab-matcher.js)
+function canonicalizeUrl(url) {
+  try {
+    const u = new URL(url);
+    u.hostname = u.hostname.toLowerCase();
+
+    // Strip tracking params
+    const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', 'msclkid', 'mc_cid', 'mc_eid', '_ga', '_gl', 'ref', 'source'];
+    trackingParams.forEach(param => u.searchParams.delete(param));
+
+    const path = u.pathname.replace(/\/$/, '') || '/';
+    return `${u.protocol}//${u.host}${path}${u.search}${u.hash}`;
+  } catch {
+    return url;
+  }
 }
 
 async function handleRenameWorkspaceItem(workspaceId, itemId) {
@@ -545,5 +681,21 @@ document.addEventListener('DOMContentLoaded', init);
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'quick-open') {
     document.getElementById('quick-search').focus();
+  }
+});
+
+// Clear workspace item bindings when tabs are closed
+chrome.tabs.onRemoved.addListener(async (closedTabId) => {
+  if (!state || !state.workspaces) return;
+
+  // Check if any workspace item was bound to this tab
+  for (const [workspaceId, workspace] of Object.entries(state.workspaces)) {
+    for (const item of workspace.items) {
+      if (item.lastBoundTabId === closedTabId) {
+        // Clear the binding
+        await updateWorkspaceItemBinding(item.id, null);
+        console.log(`[SmartSwitch] Cleared binding for ${item.alias || 'workspace item'} (tab closed)`);
+      }
+    }
   }
 });
