@@ -1,6 +1,6 @@
 # Arc-Style Workspaces: Vertical Tab Management for Chrome
 
-> **Bring Arc's best feature to any Chromium browser** - Vertical tabs, workspaces, and smart tab switching. Perfect for Comet users who want AI + organization.
+> **Bring Arc's best feature to any Chromium browser** - Vertical tabs, workspaces, and smart tab switching. Perfect for AI browsers (Comet, Atlas) that need Arc's organization.
 
 [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=google-chrome&logoColor=white)](https://github.com/SwajanJain/arc-style-workspaces)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -18,6 +18,16 @@
 ❌ **Context switching chaos** - Jumping between work, personal, and side projects feels disorganized
 
 **The result?** You waste 5-10 minutes daily hunting for tabs, or worse, you have 50+ tabs open and your browser is a graveyard.
+
+### 💡 Why This Matters NOW
+
+**Arc is discontinued.** Comet and Atlas (OpenAI's browser) are the future - AI + agentic experiences.
+
+**But they have horizontal tabs.** 😢
+
+Arc users are **trapped** - you want modern AI browsers, but can't give up vertical tabs. Vertical tabs are what made you switch from Chrome to Arc in the first place!
+
+**This extension solves that.** Install it → Get Arc's tab management in Comet/Atlas → Finally make the switch.
 
 ---
 
@@ -82,10 +92,10 @@ Type "slack" → See all Slack-related items → Enter to open. Lightning fast.
 - Organize by topic or deadline
 - Prevent tab chaos
 
-**Arc Lovers Who Want Comet's AI**
+**Arc Lovers Who Want Modern AI Browsers**
 - You loved Arc's vertical tabs + workspaces
-- But Comet has better AI and agentic features
-- Now you can have **both**: Comet's AI + Arc's organization
+- But new AI browsers (Comet, OpenAI's Atlas) have better AI and agentic features
+- Now you can have **both**: Modern AI + Arc's organization
 
 ### ❌ Not for:
 
@@ -199,20 +209,34 @@ Add your work tools:
 
 ---
 
-## 🆚 Why This Over Arc?
+## 🆚 The Arc User's Dilemma (And How This Solves It)
 
-**Arc is amazing, but:**
-- Arc discontinued development (RIP 😢)
-- No AI features like Comet
-- Mac-only (Windows version incomplete)
-- Forces you to change browsers
+**You're stuck between two worlds:**
 
-**This extension gives you Arc's best features anywhere:**
-- ✅ Use with Comet for AI + organization
-- ✅ Keep your existing Chrome setup
-- ✅ Works on Windows, Mac, Linux
-- ✅ Syncs across devices via Chrome sync
-- ✅ Open source and customizable
+**Arc (what you have):**
+- ✅ Vertical tabs + workspaces = AMAZING organization
+- ❌ No AI features (discontinued development)
+- ❌ No agentic experience
+- ❌ Falling behind on features
+
+**Comet/Atlas (what you want):**
+- ✅ AI + Agentic features = Cutting edge
+- ✅ Modern, actively developed
+- ❌ **Horizontal tabs = Dealbreaker** 😢
+
+**The Problem:**
+Vertical tabs made you switch from Chrome to Arc instantly. Now those same vertical tabs are PREVENTING you from switching to AI browsers. You're trapped.
+
+**This Extension = The Bridge**
+
+Install this → Get vertical tabs in Comet/Atlas → Finally make the switch!
+
+**Now you can have:**
+- ✅ Comet/Atlas's AI + agentic experience
+- ✅ Arc's vertical tab management
+- ✅ Smart tab switching (Arc's secret sauce)
+- ✅ Workspaces organized by context
+- ✅ No compromises
 
 ---
 
