@@ -1,6 +1,6 @@
 # Arc-Style Workspaces: Vertical Tab Management for Any Chromium Browser
 
-> **Bring Arc's best feature to Chrome, Brave, Edge, Comet, and Atlas** - Vertical tabs, workspaces, and smart tab switching. Finally get Arc's organization in the browser of your choice.
+> **Bring Arc's best feature to Chrome, Brave, Comet, Dia and Atlas** — Vertical tabs, workspaces, and smart tab switching. Finally get Arc's organization in the browser of your choice.
 
 [![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?logo=google-chrome&logoColor=white)](https://github.com/SwajanJain/arc-style-workspaces)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -9,25 +9,23 @@
 
 ## 🎯 The Problem
 
-**Horizontal tabs are a productivity killer:**
+**Horizontal tabs are outdated for serious work:**
 
-❌ **Tab overload** - 20+ tabs make it impossible to see what's open
-❌ **No organization** - Can't group tabs by project or context
-❌ **Wasted space** - Horizontal tabs take precious screen real estate
-❌ **Tab duplication** - Clicking Gmail opens *another* Gmail tab instead of focusing the existing one
-❌ **Context switching chaos** - Jumping between work, personal, and side projects feels disorganized
+❌ **Tab overload** – 20+ tabs make it impossible to see what's open.
+❌ **No organization** – Can't group tabs by project or context.
+❌ **Wasted space** – Horizontal tabs eat precious screen real estate.
+❌ **Duplication** – Clicking Gmail opens *another* Gmail tab instead of focusing the existing one.
+❌ **Context switching chaos** – Jumping between work, personal, and side projects is messy.
 
-**The result?** You waste 5-10 minutes daily hunting for tabs, or worse, you have 50+ tabs open and your browser is a graveyard.
+**Result?** You waste time hunting for tabs, or end up with 50+ cluttered windows.
 
-### 💡 Why This Matters NOW
+### 💡 Why This Matters Now
 
-**Arc is great, but focused on design over AI.** Comet and Atlas (OpenAI's browser) are the future - AI + agentic experiences built right in.
+* **Arc Browser users love its vertical tabs and workspaces.** However, The Browser Company has discontinued regular updates for Arc, so we're unlikely to ever see true agentic experiences like Comet or Atlas inside Arc itself. Many power users worry that Arc isn't evolving in line with where the web is headed, and even their other AI browser Dia lacks vertical tab management.
+* **AI-first browsers (Comet, Atlas, and Dia)** are building agentic, AI-native experiences. But they all force horizontal tabs, with no Arc-style vertical management.
+* **Chrome/Brave/Edge users** never had Arc's vertical system to begin with.
 
-**But they have horizontal tabs.** 😢
-
-If you love Arc's vertical tabs but want modern AI features, you're stuck. And if you're on Chrome or Brave, you've never had Arc's amazing tab management.
-
-**This extension solves that.** Install it → Get Arc's tab management in ANY Chromium browser → Use the browser you actually want.
+**This extension solves that.** → Get Arc's vertical tab organization and smart switching in *any* Chromium browser, while enjoying the AI/agentic future that Arc never built.
 
 ---
 
@@ -36,304 +34,141 @@ If you love Arc's vertical tabs but want modern AI features, you're stuck. And i
 **Arc-Style Workspaces** brings vertical tab management to Chrome/Edge/Brave/Comet with:
 
 ### 🎯 Smart Tab Switching (Arc's Killer Feature)
-**Problem:** Clicking a link always opens a new tab, even if it's already open.
-**Solution:** Our extension **focuses existing tabs** instead of duplicating them.
 
-- Click Gmail favorite → **Focuses your existing Gmail tab** (or creates new if not open)
-- Click Slack workspace item → **Goes back to your Slack tab** (even if you navigated elsewhere)
-- Navigate from `/directory` to `/admin` in the same tab → **Clicking `/directory` brings you back to that tab** (Arc's tab binding)
+* Click Gmail favorite → **Focuses your existing Gmail tab** (or creates new if not open).
+* Navigate around in Gmail → Clicking Gmail again brings you *back to that bound tab*.
+* No more 5 Slack tabs or duplicate dashboards.
 
-**Bonus:** Shift+Click always forces a new tab when you need it.
+**Power options:**
 
-### 📁 Workspaces: Organize by Context
-**Problem:** Your work tabs mix with personal tabs and side projects.
-**Solution:** Create workspaces for different contexts.
+* Shift+Click = Force new tab.
+* Cmd+Click = Open in background.
+* Alt+Click = Cycle through multiple matches.
 
-**Example for a Product Manager:**
-- **📊 Office** → Slack, Metabase, Amplitude, Gmail, Calendar
-- **🎨 Design Review** → Figma, Notion docs, Linear tickets
-- **💼 Client Work** → Client dashboard, reports, emails
-- **🏠 Personal** → Twitter, Reddit, banking
+### 📁 Workspaces by Context
 
-Each workspace collapses/expands independently. One click opens your entire workflow.
+* Separate **Work, Design, Client, Personal** flows.
+* Collapse/expand workspaces for focus.
+* Drag, rename, and alias tabs.
 
-### ⭐ Favorites: Your Most-Used Tools
-**Problem:** You visit the same 10-15 sites every day (Slack, Gmail, Notion, etc.)
-**Solution:** Pin them as favicon-only favorites in a clean 4-column grid.
+### ⭐ Favorites Grid
 
-- One-click access to daily tools
-- No more bookmark bar clutter
-- Visual, fast, and always accessible
+* Favicon-only favorites in a clean **4-column grid**, dynamically adjusting rows.
+* One-click access to daily tools.
+* Minimal, visual, clutter-free.
 
-### 🔍 Quick Search: Find Anything Instantly
-**Problem:** With 50+ tabs, finding the right one is painful.
-**Solution:** `Cmd/Ctrl+K` opens a search that filters favorites, workspaces, and open tabs.
+### 🔍 Quick Search
 
-Type "slack" → See all Slack-related items → Enter to open. Lightning fast.
+* `Cmd/Ctrl+K` to filter across favorites, workspaces, and open tabs.
+* Lightning fast context switching.
 
 ---
 
 ## 👥 Who This Is For
 
-### ✅ Perfect for:
+* **Arc fans** who love vertical tabs but want AI-native browsers.
+* **Product managers & knowledge workers** juggling Slack, dashboards, docs, and calendars.
+* **Developers/designers** who need organized contexts across multiple projects.
+* **Chrome/Brave/Edge users** tired of tab overload.
 
-**Product Managers & Cross-Functional Teams**
-- Jump between Slack, dashboards (Metabase, Amplitude), Notion, Linear, Google Suite
-- Organize by project or client
-- Keep work and personal separate
-
-**Developers & Designers**
-- Organize tabs by feature/project
-- Quick access to GitHub, docs, staging, prod
-- Keep reference docs always accessible
-
-**Knowledge Workers**
-- Research projects with many tabs
-- Organize by topic or deadline
-- Prevent tab chaos
-
-**Arc Lovers Who Want Modern AI Browsers**
-- You love Arc's vertical tabs + workspaces
-- But new AI browsers (Comet, OpenAI's Atlas) have AI and agentic features Arc doesn't
-- Now you can have **both**: Modern AI + Arc's organization
-
-**Chrome/Brave Power Users**
-- You're happy with Chrome or Brave but want better tab management
-- You've heard about Arc's vertical tabs and want that experience
-- Now you can get Arc's features without switching browsers
-
-### ❌ Not for:
-
-- Casual browsers with <5 tabs
-- People who prefer horizontal tabs
+Not for: casual browsers with <5 tabs, or those who prefer horizontal layouts.
 
 ---
 
 ## 🚀 Key Features
 
-### 1. Smart Tab Switching (The Game-Changer)
-**How it works:**
-- First click → Opens tab and binds it to that workspace item
-- Navigate anywhere in that tab (even different sections of the site)
-- Click again → **Focuses that bound tab** (Arc's secret sauce!)
-- Close tab → Binding clears, next click opens new
-
-**Why it matters:**
-No more 5 Gmail tabs, 3 Slack tabs, and duplicate dashboards. Click → go to your existing tab. Period.
-
-**Advanced:**
-- Multi-window: Brings window to front if tab is elsewhere
-- Cycle mode: Multiple tabs of same site? Rapid-click cycles through them
-- Keyboard modifiers: Shift+Click = force new, Cmd+Click = background tab
-
-### 2. Collapsible Workspaces
-- Group tabs by project, client, or context
-- Each workspace has custom name + icon
-- Items inside can have aliases (rename "dashboard-prod-v2" → "Prod Dashboard")
-- Move items between workspaces via drag-and-drop or context menu
-- Collapse workspaces you're not using
-
-### 3. Favorites Grid
-- 4-column layout with favicons only
-- Hover for site name
-- Add, remove, reorder
-- Right-click for context menu (open in new tab, remove)
-
-### 4. Open Tabs View (Optional)
-- See all tabs in current window
-- Visual indicator for tabs already in workspaces
-- Click to focus any tab
-- Toggle on/off in preferences
-
-### 5. Preferences & Customization
-- **Open behavior:** Smart-switch (default) | New tab | Same tab
-- **Theme density:** Compact | Cozy
-- **Show/hide** open tabs section
-- **Export/Import:** Backup your workspaces as JSON
-
-### 6. Keyboard-First
-| Shortcut | Action |
-|----------|--------|
-| `Cmd/Ctrl+Shift+V` | Toggle side panel |
-| `Cmd/Ctrl+K` | Focus search |
-| `↑/↓` | Navigate search results |
-| `Enter` | Open highlighted result |
-| `Esc` | Clear search |
-| `Shift+Click` | Force new tab |
-
----
-
-## 📦 Installation
-
-### Option 1: From Source (5 minutes)
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/SwajanJain/arc-style-workspaces.git
-   cd arc-style-workspaces/side-panel
-   ```
-
-2. Open your browser:
-   - **Chrome/Brave/Edge:** `chrome://extensions/`
-   - **Comet:** `comet://extensions/`
-
-3. Enable **Developer mode** (toggle in top-right)
-
-4. Click **Load unpacked** → Select the `side-panel` folder
-
-5. Done! Click the extension icon or press `Cmd/Ctrl+Shift+V`
-
-### Option 2: Chrome Web Store (Coming Soon)
-*Publishing in progress*
-
----
-
-## 🎬 Quick Start
-
-### 1. Add Your Daily Tools as Favorites
-Click the **+** in favorites grid → Add:
-- Gmail
-- Slack
-- Notion
-- Calendar
-- Whatever you use daily
-
-### 2. Create Your First Workspace
-Click **+ New Workspace** → Name it "Office" or "Work"
-
-Add your work tools:
-- Slack → Alias: "Team Chat"
-- Metabase → Alias: "Analytics"
-- Gmail → Alias: "Email"
-
-### 3. Test Smart Switching
-1. Click your Gmail favorite → Opens Gmail tab
-2. Navigate to Sent folder
-3. Switch to another tab
-4. **Click Gmail favorite again** → **Jumps back to your Sent folder!** ✨
+1. **Smart Tab Switching** – focus existing tabs instead of duplicating.
+2. **Collapsible Workspaces** – organize tabs by project, client, or context.
+3. **Favorites Grid** – Arc-style favicon-only grid with dynamic rows.
+4. **Quick Search** – instantly find any tab or workspace.
+5. **Custom Preferences** – control match modes, behaviors, and layouts.
+6. **Keyboard-first UX** – shortcuts for panel toggle, search, and tab actions.
 
 ---
 
 ## 🆚 Why Not Just Use Arc?
 
-**Arc is amazing for tab management, but:**
+* Arc = ✅ design + vertical tabs, ❌ AI roadmap, ❌ Windows support slowing.
+* Comet/Atlas = ✅ AI/agentic browsing, ❌ horizontal tabs, ❌ poor workspace management.
+* Chrome/Brave = ✅ stable, extensible, ❌ no vertical tabs.
 
-**Arc (Browser Company's focus):**
-- ✅ Vertical tabs + workspaces = AMAZING organization
-- ✅ Beautiful design and UX
-- ❌ Not building AI or agentic features (focused on design)
-- ❌ Only available on Arc browser
-
-**Modern AI Browsers (Comet, Atlas):**
-- ✅ AI + Agentic features = Cutting edge
-- ✅ Built-in AI assistance and automation
-- ❌ **Horizontal tabs = Dealbreaker** 😢
-
-**Chrome/Brave Users:**
-- ✅ Fast, reliable, extensible
-- ✅ Your preferred browser
-- ❌ No vertical tabs or workspaces at all
-
-**This Extension = The Bridge**
-
-Works on **any Chromium browser**: Chrome, Brave, Edge, Comet, Atlas, Arc (if you want extra features!).
-
-**Now you can have:**
-- ✅ Your browser of choice (AI browsers, Chrome, Brave - whatever!)
-- ✅ Arc's vertical tab management
-- ✅ Smart tab switching (Arc's secret sauce)
-- ✅ Workspaces organized by context
-- ✅ No compromises
+**This extension = The bridge.**
+Arc's vertical tab power + modern AI browsers + your preferred environment.
 
 ---
 
-## 🎯 Real-World Example: Product Manager Workflow
+## 📦 Install
 
-**Before (Horizontal Tabs Hell):**
-- 47 tabs open across 3 windows
-- Can't find the Amplitude dashboard
-- Clicking Slack opens a 4th Slack tab
-- Mix of work and personal tabs
-- Tab bar is 15 pixels wide per tab (unreadable)
+### From Source
 
-**After (Arc-Style Workspaces):**
+```bash
+git clone https://github.com/SwajanJain/arc-style-workspaces.git
+cd arc-style-workspaces/side-panel
+```
 
-**Favorites:**
-- Gmail, Slack, Linear, Notion, Calendar (one-click access)
+1. Go to your browser's extensions page (`chrome://extensions`, `brave://extensions`, or `comet://extensions`).
+2. Enable Developer Mode.
+3. Load Unpacked → Select the `side-panel` folder.
 
-**Office Workspace:**
-- Dashboard → `company.com/dashboard`
-- Analytics → `company.com/analytics`
-- Reports → `company.com/reports`
-- Admin Panel → Internal tools
-
-**Personal Workspace:**
-- Twitter, Reddit, Banking, Shopping
-
-**Result:**
-- Click "Office" workspace items → All work tools in their bound tabs
-- Click Slack → **Focuses existing Slack** (no more duplicates!)
-- Collapse "Personal" when working → Clean workspace
-- Navigate `/dashboard` → `/settings` → Click Dashboard again → **Returns to same tab!**
-
-**Time saved:** 10+ minutes/day finding and managing tabs.
+### Chrome Web Store (Coming Soon)
 
 ---
 
-## 🛠️ Architecture & Tech
+## 🛠 Tech & Architecture
 
-Built with:
-- **Vanilla JavaScript** (no frameworks, minimal bundle)
-- **Chrome Extension Manifest V3** (modern, secure)
-- **Side Panel API** (persistent, collapsible)
-- **chrome.storage.sync** (data syncs across devices)
-
-**Key innovations:**
-- **Tab binding cache:** Tracks which tab belongs to which workspace item (Arc's approach)
-- **URL canonicalization:** Strips tracking params for better matching
-- **Multi-window support:** Brings window to front when tab is elsewhere
-- **Service layer:** Clean architecture (tab-matcher, tab-cache, smart-switcher)
+* **Vanilla JavaScript** (no frameworks, minimal bundle).
+* **Manifest V3** – secure modern extension.
+* **Side Panel API** – persistent sidebar.
+* **Tab matcher & cache** – smart-switch with canonicalized URLs.
+* **Cross-device sync** – via Chrome sync storage.
 
 ---
 
 ## 🤝 Contributing
 
-We'd love your help! This extension is **open source** and community-driven.
+We're building this in the open. Help us improve:
 
-**Good first issues:**
-- Add drag-and-drop reordering
-- UI for configuring match modes per favorite
-- Toast notifications for tab actions
-- Live tab management (show all open tabs in sidebar)
+* Drag-and-drop reordering.
+* Match mode UI (exact, domain, prefix).
+* Toast notifications for tab actions.
+* Live tab list view.
 
-**How to contribute:**
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+Fork, branch, PR — contributions welcome.
 
 ---
 
-## 📝 License
+## 🚦 Getting Started by Use Case
 
-MIT License - Free to use, modify, and distribute.
+### 🧑‍💼 Product Managers
+
+* **Favorites:** Pin Slack, Gmail, Metabase, Amplitude, Calendar.
+* **Workspaces:** `Office` (analytics + comms), `Clients` (dashboards + reports).
+* **Smart Switching:** Jump instantly back to dashboards without duplicates.
+
+### 👩‍💻 Developers & Designers
+
+* **Favorites:** GitHub, Linear, Figma, Docs.
+* **Workspaces:** `Feature A`, `Feature B` → each with staging, prod, design.
+* **Smart Switching:** Reopen same repo tab even after context switching.
+
+### 📚 Researchers & Knowledge Workers
+
+* **Favorites:** Google Scholar, Notion, Docs.
+* **Workspaces:** `Topic A`, `Topic B`, `Personal`.
+* **Smart Switching:** Navigate deep into resources but return with one click.
+
+### 🌐 Arc Fans Exploring AI Browsers
+
+* Keep the Arc-style vertical system you love.
+* Run it inside Comet, Atlas, or Dia to combine vertical tabs with agentic AI features.
 
 ---
 
 ## 🙏 Credits
 
-Inspired by [Arc Browser](https://arc.net) by The Browser Company.
-
-Built with ❤️ for everyone who loved Arc but needs more flexibility.
-
----
-
-## 💬 Questions or Issues?
-
-- **GitHub Issues:** [Report bugs or request features](https://github.com/SwajanJain/arc-style-workspaces/issues)
-- **Discussions:** Share your workflows and tips
+Inspired by **Arc Browser** by The Browser Company.
+Built for everyone who loves Arc's UX but wants AI + choice of browser.
 
 ---
 
-**Ready to reclaim your browser?** Install now and experience Arc's best feature in the browser of your choice. 🚀
+**Install today and reclaim your browsing workspace.** 🚀
