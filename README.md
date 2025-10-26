@@ -1,4 +1,4 @@
-# Arc-Style Workspaces: Vertical Tab Management for Any Chromium Browser
+# Arc-Inspired Workspaces: Vertical Tab Management for Any Chromium Browser
 
 > **Bring Arc's best feature to Chrome, Brave, Comet, Dia and Atlas** — Vertical tabs, workspaces, and smart tab switching. Finally get Arc's organization in the browser of your choice.
 
@@ -31,7 +31,7 @@
 
 ## ✨ The Solution
 
-**Arc-Style Workspaces** brings vertical tab management to Chrome/Edge/Brave/Comet with:
+**Arc-Inspired Workspaces** brings vertical tab management to Chrome/Edge/Brave/Comet with:
 
 ### 🎯 Smart Tab Switching (Arc's Killer Feature)
 

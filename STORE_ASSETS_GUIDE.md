@@ -134,7 +134,7 @@ Horizontal tabs are outdated for serious work:
 • Wasted time hunting for tabs
 
 ✨ THE SOLUTION
-Arc-Style Workspaces gives you:
+Arc-Inspired Workspaces gives you:
 
 SMART TAB SWITCHING (Arc's Killer Feature)
 • Click favorites → focuses existing tab or creates new
@@ -196,7 +196,7 @@ Questions? Issues? Visit our GitHub repo for support.
    - Make sure it's viewable without login
 
 3. **Avoid trademark issues:**
-   - We use "Arc-Style" (describes similarity)
+   - We use "Arc-Inspired" (shows it's a tribute, not official)
    - Don't claim affiliation with The Browser Company
    - Credit Arc Browser in description
 

@@ -1,10 +1,10 @@
-# Privacy Policy for Arc-Style Workspaces
+# Privacy Policy for Arc-Inspired Workspaces
 
 **Last Updated:** October 26, 2024
 
 ## Overview
 
-Arc-Style Workspaces ("the Extension") is committed to protecting your privacy. This privacy policy explains how the Extension handles your data.
+Arc-Inspired Workspaces ("the Extension") is committed to protecting your privacy. This privacy policy explains how the Extension handles your data.
 
 ## Data Collection
 
@@ -75,7 +75,7 @@ We may update this privacy policy from time to time. Changes will be posted in t
 
 ## Open Source
 
-Arc-Style Workspaces is **open source**. You can review the code at:
+Arc-Inspired Workspaces is **open source**. You can review the code at:
 https://github.com/SwajanJain/arc-style-workspaces
 
 You can verify that we do not collect or transmit data by inspecting the source code.
@@ -89,4 +89,4 @@ If you have questions about this privacy policy:
 
 ## Consent
 
-By installing and using Arc-Style Workspaces, you agree to this privacy policy.
+By installing and using Arc-Inspired Workspaces, you agree to this privacy policy.
