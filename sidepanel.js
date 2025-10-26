@@ -129,40 +129,58 @@ async function handleClickFavorite(fav, mode = null, event = null) {
 
   // Smart switching enabled?
   if (openMode === 'smart-switch' && event) {
-    // Detect keyboard modifiers
-    const modifiers = {
-      shift: event.shiftKey,        // Force new tab
-      cmd: event.metaKey || event.ctrlKey,  // Background tab
-      alt: event.altKey             // Cycle immediately
-    };
+    // Shift+Click: Force new tab (clear binding)
+    if (event.shiftKey) {
+      const newTab = await chrome.tabs.create({ url: fav.url });
+      await updateFavoriteBinding(fav.id, newTab.id);
+      console.log(`[SmartSwitch] Force new tab for ${fav.title || 'favorite'}`);
+      return;
+    }
 
     try {
-      const response = await chrome.runtime.sendMessage({
-        type: 'favorite:switch',
-        payload: {
-          favoriteId: fav.id,
-          modifiers
-        }
-      });
+      // Check binding cache first (Arc way)
+      if (fav.lastBoundTabId) {
+        const boundTab = await chrome.tabs.get(fav.lastBoundTabId).catch(() => null);
 
-      if (response && !response.ok) {
-        console.error('[SmartSwitch] Failed:', response.error);
-        // Fallback to simple open
-        openUrl(fav.url, 'new-tab');
-        return;
+        if (boundTab) {
+          // Bound tab still exists - focus it (regardless of URL!)
+          await chrome.tabs.update(boundTab.id, { active: true });
+
+          // Bring window to front if needed
+          if (boundTab.windowId) {
+            await chrome.windows.update(boundTab.windowId, { focused: true });
+          }
+
+          console.log(`[SmartSwitch] Focused bound tab ${fav.title || 'favorite'} at ${boundTab.url}`);
+          return;
+        } else {
+          // Bound tab was closed - clear binding
+          await updateFavoriteBinding(fav.id, null);
+        }
       }
 
-      // Log action
-      if (response?.action === 'cycled') {
-        console.log(`[SmartSwitch] Cycled to next ${fav.title || 'tab'}`);
-      } else if (response?.action === 'focused') {
-        console.log(`[SmartSwitch] Focused existing ${fav.title || 'tab'}`);
-      } else if (response?.action === 'created') {
-        console.log(`[SmartSwitch] Created new ${fav.title || 'tab'}`);
+      // No valid binding - try to find matching tab by URL (fallback)
+      const tabs = await chrome.tabs.query({ currentWindow: true });
+      const matchingTab = tabs.find(tab => {
+        if (!tab.url) return false;
+        const canonicalTab = canonicalizeUrl(tab.url);
+        const canonicalFav = canonicalizeUrl(fav.url);
+        return canonicalTab.startsWith(canonicalFav);
+      });
+
+      if (matchingTab) {
+        // Found matching tab - focus it and bind it
+        await chrome.tabs.update(matchingTab.id, { active: true });
+        await updateFavoriteBinding(fav.id, matchingTab.id);
+        console.log(`[SmartSwitch] Focused existing ${fav.title || 'favorite'}`);
+      } else {
+        // No match - create new tab and bind it
+        const newTab = await chrome.tabs.create({ url: fav.url });
+        await updateFavoriteBinding(fav.id, newTab.id);
+        console.log(`[SmartSwitch] Created new ${fav.title || 'favorite'}`);
       }
     } catch (error) {
       console.warn('[SmartSwitch] Error, falling back:', error);
-      // Fallback to simple open
       openUrl(fav.url, 'new-tab');
     }
   } else {
@@ -333,6 +351,15 @@ async function handleOpenWorkspaceItem(item, mode = null, event = null) {
 }
 
 // Helper to update workspace item binding
+async function updateFavoriteBinding(favId, tabId) {
+  await Storage.updateFavorite(favId, {
+    lastBoundTabId: tabId,
+    lastBoundAt: tabId ? Date.now() : null
+  });
+  // Refresh state
+  state = await Storage.getState();
+}
+
 async function updateWorkspaceItemBinding(itemId, tabId) {
   // Find which workspace contains this item
   for (const [workspaceId, workspace] of Object.entries(state.workspaces)) {
@@ -686,15 +713,28 @@ chrome.commands.onCommand.addListener((command) => {
 
 // Clear workspace item bindings when tabs are closed
 chrome.tabs.onRemoved.addListener(async (closedTabId) => {
-  if (!state || !state.workspaces) return;
+  if (!state) return;
+
+  // Check if any favorite was bound to this tab
+  if (state.favorites) {
+    for (const fav of state.favorites) {
+      if (fav.lastBoundTabId === closedTabId) {
+        // Clear the binding
+        await updateFavoriteBinding(fav.id, null);
+        console.log(`[SmartSwitch] Cleared binding for ${fav.title || 'favorite'} (tab closed)`);
+      }
+    }
+  }
 
   // Check if any workspace item was bound to this tab
-  for (const [workspaceId, workspace] of Object.entries(state.workspaces)) {
-    for (const item of workspace.items) {
-      if (item.lastBoundTabId === closedTabId) {
-        // Clear the binding
-        await updateWorkspaceItemBinding(item.id, null);
-        console.log(`[SmartSwitch] Cleared binding for ${item.alias || 'workspace item'} (tab closed)`);
+  if (state.workspaces) {
+    for (const [workspaceId, workspace] of Object.entries(state.workspaces)) {
+      for (const item of workspace.items) {
+        if (item.lastBoundTabId === closedTabId) {
+          // Clear the binding
+          await updateWorkspaceItemBinding(item.id, null);
+          console.log(`[SmartSwitch] Cleared binding for ${item.alias || 'workspace item'} (tab closed)`);
+        }
       }
     }
   }
