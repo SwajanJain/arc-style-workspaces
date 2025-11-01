@@ -778,6 +778,14 @@ body {
 .setting-label {
   font-size: 13px;
   color: var(--text-primary);
+  flex: 1;
+}
+
+.setting-control {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex-shrink: 0;
 }
 
 .setting-control select {
@@ -792,8 +800,10 @@ body {
 
 .toggle-switch {
   position: relative;
+  display: inline-block;
   width: 40px;
   height: 22px;
+  flex-shrink: 0;
 }
 
 .toggle-switch input {

@@ -564,11 +564,12 @@ function showSettings() {
   showModal('Settings', `
     <div class="settings-panel">
       <div class="settings-group">
-        <div class="settings-group-title">Behavior</div>
+        <div class="settings-group-title">BEHAVIOR</div>
         <div class="setting-item">
           <label class="setting-label">Open links in</label>
           <div class="setting-control">
             <select id="open-behavior">
+              <option value="smart-switch" ${state.preferences.openBehavior === 'smart-switch' ? 'selected' : ''}>Smart switch (Arc-style)</option>
               <option value="same-tab" ${state.preferences.openBehavior === 'same-tab' ? 'selected' : ''}>Same tab</option>
               <option value="new-tab" ${state.preferences.openBehavior === 'new-tab' ? 'selected' : ''}>New tab</option>
             </select>
@@ -577,23 +578,14 @@ function showSettings() {
       </div>
 
       <div class="settings-group">
-        <div class="settings-group-title">Display</div>
+        <div class="settings-group-title">DISPLAY</div>
         <div class="setting-item">
-          <label class="setting-label">Show open tabs</label>
+          <label class="setting-label">Show open tabs list</label>
           <div class="setting-control">
             <label class="toggle-switch">
               <input type="checkbox" id="show-open-tabs" ${state.preferences.showOpenTabs ? 'checked' : ''} />
               <span class="toggle-slider"></span>
             </label>
-          </div>
-        </div>
-        <div class="setting-item">
-          <label class="setting-label">Density</label>
-          <div class="setting-control">
-            <select id="theme-density">
-              <option value="compact" ${state.preferences.themeDensity === 'compact' ? 'selected' : ''}>Compact</option>
-              <option value="cozy" ${state.preferences.themeDensity === 'cozy' ? 'selected' : ''}>Cozy</option>
-            </select>
           </div>
         </div>
       </div>
@@ -608,12 +600,10 @@ function showSettings() {
   document.getElementById('save-settings').addEventListener('click', async () => {
     const openBehavior = document.getElementById('open-behavior').value;
     const showOpenTabs = document.getElementById('show-open-tabs').checked;
-    const themeDensity = document.getElementById('theme-density').value;
 
     state = await Storage.updatePreferences({
       openBehavior,
-      showOpenTabs,
-      themeDensity
+      showOpenTabs
     });
 
     renderUI();
