@@ -75,10 +75,12 @@ export class SmartSwitcher {
    */
   findMatches(favorite, currentWindowId) {
     const state = this.getState();
+    if (!state) return []; // Guard against null state
+
     const { url, matchMode, matchPattern } = favorite;
 
     // Use global default if favorite doesn't specify
-    const effectiveMode = matchMode || state.preferences.defaultMatchMode || MATCH_MODE.PREFIX;
+    const effectiveMode = matchMode || state?.preferences?.defaultMatchMode || MATCH_MODE.PREFIX;
 
     // Query all tabs
     const allTabs = this.tabCache.getAll();
@@ -108,7 +110,9 @@ export class SmartSwitcher {
     }
 
     const state = this.getState();
-    const effectiveMode = favorite.matchMode || state.preferences.defaultMatchMode || MATCH_MODE.PREFIX;
+    if (!state) return false; // Guard against null state
+
+    const effectiveMode = favorite.matchMode || state?.preferences?.defaultMatchMode || MATCH_MODE.PREFIX;
 
     // Check if tab still matches favorite
     return matchesUrl(tab.url, favorite.url, effectiveMode, favorite.matchPattern);
@@ -119,6 +123,8 @@ export class SmartSwitcher {
    */
   detectReclick(favoriteId) {
     const state = this.getState();
+    if (!state || !state.preferences) return false; // Guard against null state
+
     const prefs = state.preferences;
     if (!prefs.enableCycleOnReclick) return false;
 
@@ -154,6 +160,12 @@ export class SmartSwitcher {
    */
   async focusTab(tab, favorite) {
     const state = this.getState();
+    if (!state || !state.preferences) {
+      // If no state, just focus the tab in current window
+      await chrome.tabs.update(tab.id, { active: true });
+      return;
+    }
+
     const prefs = state.preferences;
     const multiWindowBehavior = favorite.multiWindowBehavior || prefs.multiWindowBehavior || MULTI_WINDOW_BEHAVIOR.FOCUS;
 
@@ -221,7 +233,9 @@ export class SmartSwitcher {
    */
   async clearBindingsForTab(tabId) {
     const state = this.getState();
-    const favorites = state.favorites || [];
+    if (!state || !state.favorites) return; // Guard against null state
+
+    const favorites = state.favorites;
 
     for (const fav of favorites) {
       if (fav.lastBoundTabId === tabId) {
@@ -235,7 +249,9 @@ export class SmartSwitcher {
    */
   async revalidateBindingsForTab(tabId, tab) {
     const state = this.getState();
-    const favorites = state.favorites || [];
+    if (!state || !state.favorites) return; // Guard against null state
+
+    const favorites = state.favorites;
 
     for (const fav of favorites) {
       if (fav.lastBoundTabId === tabId) {

@@ -358,6 +358,8 @@ async function updateFavoriteBinding(favId, tabId) {
   });
   // Refresh state
   state = await Storage.getState();
+  // Re-render favorites so next click uses updated binding
+  renderFavorites();
 }
 
 async function updateWorkspaceItemBinding(itemId, tabId) {
@@ -371,6 +373,8 @@ async function updateWorkspaceItemBinding(itemId, tabId) {
       });
       // Refresh state
       state = await Storage.getState();
+      // Re-render workspaces so next click uses updated binding
+      renderWorkspaces();
       return;
     }
   }
