@@ -7,6 +7,42 @@ let tabCache;
 let switcher;
 let state = null; // Cached state
 
+// Migration system
+const STORAGE_KEY = 'state.v1';
+
+/**
+ * Run database migrations on the state
+ * Each migration runs only once based on migrationVersion
+ */
+async function runMigrations() {
+  const result = await chrome.storage.sync.get([STORAGE_KEY]);
+  const currentState = result[STORAGE_KEY];
+
+  if (!currentState) {
+    console.log('[Migrations] No existing state, skipping migrations');
+    return;
+  }
+
+  const currentVersion = currentState.migrationVersion || 0;
+
+  // Migration 1: Enable showOpenTabs by default for existing users
+  if (currentVersion < 1) {
+    console.log('[Migration 1] Enabling Open Tabs list by default');
+    currentState.preferences = currentState.preferences || {};
+    currentState.preferences.showOpenTabs = true;
+    currentState.migrationVersion = 1;
+    currentState.tabAliases = currentState.tabAliases || {};
+
+    await chrome.storage.sync.set({ [STORAGE_KEY]: currentState });
+    console.log('[Migration 1] Completed');
+  }
+
+  // Future migrations go here...
+  // if (currentVersion < 2) { ... }
+
+  console.log(`[Migrations] All migrations complete. Current version: ${currentState.migrationVersion}`);
+}
+
 // Initialize services
 async function initializeServices() {
   // Initialize tab cache
@@ -154,11 +190,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Installation handler
 chrome.runtime.onInstalled.addListener(async (details) => {
-  // Initialize services first
-  await initializeServices();
-
   if (details.reason === 'install') {
-    // Initialize with default state on first install
+    // New installation - Initialize with default state
     const result = await chrome.storage.sync.get(['state.v1']);
     if (!result['state.v1']) {
       const defaultState = {
@@ -166,19 +199,29 @@ chrome.runtime.onInstalled.addListener(async (details) => {
         workspaces: {},
         preferences: {
           openBehavior: 'smart-switch',
-          showOpenTabs: false,
+          showOpenTabs: true, // Enabled by default for new users
           themeDensity: 'cozy',
           defaultMatchMode: 'prefix',
           multiWindowBehavior: 'focus',
           enableCycleOnReclick: true,
           cycleCooldown: 1500,
           stripTrackingParams: true
-        }
+        },
+        tabAliases: {},
+        migrationVersion: 1 // New installs start at latest version
       };
       await chrome.storage.sync.set({ 'state.v1': defaultState });
       state = defaultState;
+      console.log('[Install] Initialized with default state (migrationVersion: 1)');
     }
+  } else if (details.reason === 'update') {
+    // Extension updated - Run migrations for existing users
+    console.log('[Update] Extension updated, running migrations...');
+    await runMigrations();
   }
+
+  // Initialize services after migration/install
+  await initializeServices();
 });
 
 // Startup handler

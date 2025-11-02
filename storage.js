@@ -18,11 +18,56 @@ const DEFAULT_STATE = {
     cycleCooldown: 1500, // milliseconds
     stripTrackingParams: true
   },
-  tabAliases: {} // Map of tabId -> custom alias string
+  tabAliases: {}, // Map of tabId -> custom alias string
+  migrationVersion: 1 // Current migration version (new installs get latest)
 };
 
 // Local cache to avoid unnecessary storage reads
 let stateCache = null;
+
+// Migration system
+// Each migration is a function that takes the current state and returns the updated state
+const MIGRATIONS = [
+  // Migration 1: Enable showOpenTabs by default for existing users
+  function migration1_enableOpenTabs(state) {
+    console.log('[Migration 1] Enabling Open Tabs list by default');
+    return {
+      ...state,
+      preferences: {
+        ...state.preferences,
+        showOpenTabs: true
+      },
+      migrationVersion: 1
+    };
+  }
+];
+
+/**
+ * Run all pending migrations on the state
+ * @param {Object} state - Current state
+ * @returns {Object} - Updated state after all migrations
+ */
+function runMigrations(state) {
+  // Get current migration version (0 if not set - old state)
+  const currentVersion = state.migrationVersion || 0;
+
+  // If already at latest version, return state unchanged
+  if (currentVersion >= MIGRATIONS.length) {
+    return state;
+  }
+
+  console.log(`[Migrations] Running migrations from v${currentVersion} to v${MIGRATIONS.length}`);
+
+  // Run all pending migrations in order
+  let updatedState = state;
+  for (let i = currentVersion; i < MIGRATIONS.length; i++) {
+    console.log(`[Migrations] Running migration ${i + 1}...`);
+    updatedState = MIGRATIONS[i](updatedState);
+  }
+
+  console.log(`[Migrations] Completed. Now at v${updatedState.migrationVersion}`);
+  return updatedState;
+}
 
 // Storage API wrapper
 const Storage = {
@@ -253,6 +298,20 @@ const Storage = {
 
   getTabAlias(tabId) {
     return stateCache?.tabAliases?.[tabId] || null;
+  },
+
+  // Migrations
+  async runMigrations() {
+    const state = await this.getState();
+    const updatedState = runMigrations(state);
+
+    // Only save if state changed
+    if (updatedState.migrationVersion !== state.migrationVersion) {
+      await this.setState(updatedState);
+      return updatedState;
+    }
+
+    return state;
   },
 
   // Export/Import
