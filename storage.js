@@ -9,7 +9,7 @@ const DEFAULT_STATE = {
   workspaces: {},
   preferences: {
     openBehavior: 'smart-switch', // 'same-tab' | 'new-tab' | 'workspace-window' | 'smart-switch'
-    showOpenTabs: false,
+    showOpenTabs: true,
     themeDensity: 'cozy', // 'compact' | 'cozy'
     // Smart switching preferences
     defaultMatchMode: 'prefix', // 'exact' | 'prefix' | 'domain' | 'pattern'
