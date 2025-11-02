@@ -587,6 +587,33 @@ body {
   text-overflow: ellipsis;
 }
 
+.tab-item-close {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.tab-item:hover .tab-item-close {
+  display: flex;
+}
+
+.tab-item-close:hover {
+  background: var(--bg-strong-hover);
+  color: var(--text-primary);
+}
+
 /* Footer */
 .panel-footer {
   border-top: 1px solid var(--border-light);

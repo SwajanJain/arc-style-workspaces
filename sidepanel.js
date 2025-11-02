@@ -659,18 +659,82 @@ async function loadOpenTabs() {
     return;
   }
 
-  container.innerHTML = tabs.map(tab => `
-    <div class="tab-item" data-tab-id="${tab.id}">
-      <div class="tab-item-icon">${createFaviconElement(tab.url, 18).outerHTML}</div>
-      <div class="tab-item-title">${escapeHtml(tab.title)}</div>
-    </div>
-  `).join('');
+  container.innerHTML = tabs.map(tab => {
+    const alias = state.tabAliases?.[tab.id] || null;
+    const displayTitle = alias || tab.title;
 
+    return `
+      <div class="tab-item" data-tab-id="${tab.id}">
+        <div class="tab-item-icon">${createFaviconElement(tab.url, 18).outerHTML}</div>
+        <div class="tab-item-title" title="${escapeHtml(tab.title)}">${escapeHtml(displayTitle)}</div>
+        <button class="tab-item-close" data-tab-id="${tab.id}" title="Close tab">×</button>
+      </div>
+    `;
+  }).join('');
+
+  // Click to activate tab
   container.querySelectorAll('.tab-item').forEach(el => {
-    el.addEventListener('click', () => {
+    el.addEventListener('click', (e) => {
+      // Don't activate if clicking close button
+      if (e.target.classList.contains('tab-item-close')) return;
+
       const tabId = parseInt(el.dataset.tabId);
       chrome.tabs.update(tabId, { active: true });
     });
+
+    // Right-click to rename
+    el.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const tabId = parseInt(el.dataset.tabId);
+      handleRenameTab(tabId);
+    });
+  });
+
+  // Close button handlers
+  container.querySelectorAll('.tab-item-close').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const tabId = parseInt(btn.dataset.tabId);
+      await chrome.tabs.remove(tabId);
+      // Tab will be removed from list automatically by onRemoved listener
+    });
+  });
+}
+
+// Rename Tab
+async function handleRenameTab(tabId) {
+  const tab = await chrome.tabs.get(tabId);
+  const currentAlias = state.tabAliases?.[tabId] || '';
+
+  showModal('Rename Tab', `
+    <form class="modal-form" id="rename-tab-form">
+      <div class="form-group">
+        <label class="form-label">Custom Name (optional)</label>
+        <input type="text" class="form-input" id="tab-alias" value="${escapeHtml(currentAlias)}" placeholder="${escapeHtml(tab.title)}" />
+        <div style="margin-top: 4px; font-size: 12px; color: var(--text-muted);">
+          Leave empty to use original tab title
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" id="cancel-rename-tab">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  `);
+
+  document.getElementById('cancel-rename-tab').addEventListener('click', hideModal);
+  document.getElementById('rename-tab-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const alias = document.getElementById('tab-alias').value.trim();
+
+    if (alias) {
+      state = await Storage.setTabAlias(tabId, alias);
+    } else {
+      state = await Storage.removeTabAlias(tabId);
+    }
+
+    await loadOpenTabs();
+    hideModal();
   });
 }
 
@@ -705,7 +769,16 @@ chrome.commands.onCommand.addListener((command) => {
   }
 });
 
-// Clear workspace item bindings when tabs are closed
+// Live tab listeners - Update Open Tabs section dynamically
+chrome.tabs.onCreated.addListener(async (tab) => {
+  if (!state) return;
+
+  // Refresh open tabs list if feature is enabled
+  if (state.preferences?.showOpenTabs) {
+    await loadOpenTabs();
+  }
+});
+
 chrome.tabs.onRemoved.addListener(async (closedTabId) => {
   if (!state) return;
 
@@ -731,5 +804,24 @@ chrome.tabs.onRemoved.addListener(async (closedTabId) => {
         }
       }
     }
+  }
+
+  // Remove tab alias if exists
+  if (state.tabAliases?.[closedTabId]) {
+    state = await Storage.removeTabAlias(closedTabId);
+  }
+
+  // Refresh open tabs list if feature is enabled
+  if (state.preferences?.showOpenTabs) {
+    await loadOpenTabs();
+  }
+});
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (!state) return;
+
+  // Only refresh if URL or title changed and feature is enabled
+  if ((changeInfo.url || changeInfo.title) && state.preferences?.showOpenTabs) {
+    await loadOpenTabs();
   }
 });

@@ -17,7 +17,8 @@ const DEFAULT_STATE = {
     enableCycleOnReclick: true,
     cycleCooldown: 1500, // milliseconds
     stripTrackingParams: true
-  }
+  },
+  tabAliases: {} // Map of tabId -> custom alias string
 };
 
 // Local cache to avoid unnecessary storage reads
@@ -230,6 +231,28 @@ const Storage = {
       ...state,
       preferences: { ...state.preferences, ...prefs }
     }));
+  },
+
+  // Tab Aliases
+  async setTabAlias(tabId, alias) {
+    return this.updateState(state => ({
+      ...state,
+      tabAliases: {
+        ...state.tabAliases,
+        [tabId]: alias
+      }
+    }));
+  },
+
+  async removeTabAlias(tabId) {
+    return this.updateState(state => {
+      const { [tabId]: removed, ...rest } = state.tabAliases;
+      return { ...state, tabAliases: rest };
+    });
+  },
+
+  getTabAlias(tabId) {
+    return stateCache?.tabAliases?.[tabId] || null;
   },
 
   // Export/Import
