@@ -247,34 +247,264 @@ function cleanTitle(hostname) {
 }
 
 /**
+ * Extract bookmark folders and their bookmarks
+ * @param {boolean} filterByRecency - If true, only include folders with bookmarks visited in last 30 days
+ */
+async function extractBookmarkFolders(filterByRecency = false) {
+  console.log('[extractBookmarkFolders] Starting extraction, filterByRecency:', filterByRecency);
+
+  const bookmarkTree = await chrome.bookmarks.getTree();
+  console.log('[extractBookmarkFolders] Bookmark tree:', bookmarkTree);
+
+  const folders = [];
+  const systemFolders = ['mobile bookmarks', 'other bookmarks', 'reading list'];
+
+  // Get recent history if filtering by recency
+  let recentUrls = new Set();
+  if (filterByRecency) {
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const history = await chrome.history.search({
+      text: '',
+      startTime: thirtyDaysAgo,
+      maxResults: 10000
+    });
+    recentUrls = new Set(history.map(item => item.url));
+    console.log('[extractBookmarkFolders] Recent URLs (30 days):', recentUrls.size);
+  }
+
+  function traverseBookmarks(nodes, depth = 0) {
+    console.log(`[traverseBookmarks] Depth ${depth}, processing ${nodes.length} nodes`);
+    for (const node of nodes) {
+      console.log(`[traverseBookmarks] Node at depth ${depth}:`, node.title || '(root/no title)', 'has children:', !!node.children);
+
+      if (node.children) {
+        // Handle folders with titles
+        if (node.title) {
+          console.log(`[traverseBookmarks] Depth ${depth}: "${node.title}", has ${node.children.length} children`);
+
+          // Import all folders at depth 2+ (these are user folders)
+          // System folders only exist at depth 1, so we don't need to check for them at deeper levels
+          if (depth >= 2) {
+            const bookmarks = [];
+            collectBookmarks(node, bookmarks);
+            console.log(`[traverseBookmarks] Found user folder "${node.title}" with ${bookmarks.length} bookmarks`);
+
+            if (bookmarks.length > 0) {
+              // If filtering by recency, check if at least one bookmark was visited recently
+              if (filterByRecency) {
+                const hasRecentVisit = bookmarks.some(bm => recentUrls.has(bm.url));
+                console.log(`[traverseBookmarks] Folder "${node.title}" has recent visit: ${hasRecentVisit}`);
+                if (!hasRecentVisit) {
+                  continue; // Skip this folder, but continue processing other nodes
+                }
+              }
+
+              console.log(`[traverseBookmarks] ✅ Adding folder "${node.title}" with ${bookmarks.length} bookmarks`);
+              folders.push({
+                name: node.title,
+                bookmarks: bookmarks
+              });
+            }
+          }
+        }
+
+        // Always recurse into children (even for root nodes without titles)
+        traverseBookmarks(node.children, depth + 1);
+      }
+    }
+  }
+
+  function collectBookmarks(node, bookmarks) {
+    if (node.children) {
+      for (const child of node.children) {
+        if (child.url) {
+          bookmarks.push({
+            title: child.title,
+            url: child.url
+          });
+        } else if (child.children) {
+          collectBookmarks(child, bookmarks);
+        }
+      }
+    }
+  }
+
+  traverseBookmarks(bookmarkTree);
+  console.log(`[extractBookmarkFolders] Extraction complete. Found ${folders.length} folders total.`);
+  folders.forEach(f => console.log(`  - ${f.name}: ${f.bookmarks.length} bookmarks`));
+  return folders;
+}
+
+/**
  * Quick import: Analyze history and auto-populate favorites + workspaces
  */
 async function quickImport() {
   try {
-    // 1. Analyze last 14 days
+    const summary = {
+      favorites: 0,
+      workspaces: []
+    };
+
+    // 1. Import favorites from history (top 20, last 14 days)
     const topSites = await analyzeHistory(14);
-
-    // 2. Filter minimum visits
     const qualified = topSites.filter(site => site.visits >= 3);
+    const favoritesToImport = qualified.slice(0, 20);
 
-    // 3. Import top 20 as favorites
-    const toImport = qualified.slice(0, 20);
-
-    for (const site of toImport) {
+    for (const site of favoritesToImport) {
       await Storage.addFavorite({
         url: site.bestUrl,
         title: cleanTitle(site.hostname)
       });
     }
 
-    // 4. Create default workspaces (empty - user organizes later)
-    await Storage.addWorkspace('Work', '💼');
-    await Storage.addWorkspace('Personal', '🏠');
+    summary.favorites = favoritesToImport.length;
+
+    // Track favorite URLs to avoid duplicates (exact URL matching)
+    const favoriteUrls = new Set(
+      favoritesToImport.map(s => s.bestUrl)
+    );
+
+    // 2. Get bookmark folders (only those used in last 30 days during onboarding)
+    const bookmarkFolders = await extractBookmarkFolders(true);
+
+    // 3. Track if we found Work/Personal folders
+    let hasWorkFolder = false;
+    let hasPersonalFolder = false;
+    const workspaceUrls = new Set();
+
+    // 4. Create workspaces from bookmark folders
+    for (const folder of bookmarkFolders) {
+      const lowerName = folder.name.toLowerCase();
+
+      // Check if this is Work or Personal related (word boundary matching)
+      if (/\bwork\b/.test(lowerName)) {
+        hasWorkFolder = true;
+      }
+      if (/\b(personal|home)\b/.test(lowerName)) {
+        hasPersonalFolder = true;
+      }
+
+      // Create workspace
+      const emoji = guessEmojiForFolder(folder.name);
+      const workspace = await Storage.addWorkspace(folder.name, emoji);
+
+      let addedCount = 0;
+
+      // Add bookmarks (exclude if exact URL already in favorites)
+      for (const bookmark of folder.bookmarks) {
+        try {
+          if (!favoriteUrls.has(bookmark.url)) {
+            const hostname = new URL(bookmark.url).hostname;
+            await Storage.addWorkspaceItem(workspace.id, {
+              url: bookmark.url,
+              title: bookmark.title || cleanTitle(hostname)
+            });
+            workspaceUrls.add(bookmark.url);
+            addedCount++;
+          }
+        } catch (err) {
+          // Skip invalid URLs
+        }
+      }
+
+      summary.workspaces.push({
+        name: folder.name,
+        emoji: emoji,
+        tabs: addedCount
+      });
+    }
+
+    // 5. Create Work workspace if not found in bookmarks
+    if (!hasWorkFolder) {
+      await Storage.addWorkspace('Work', '💼');
+      summary.workspaces.push({
+        name: 'Work',
+        emoji: '💼',
+        tabs: 0
+      });
+    }
+
+    // 6. Create Personal workspace if not found in bookmarks
+    if (!hasPersonalFolder) {
+      await Storage.addWorkspace('Personal', '🏠');
+      summary.workspaces.push({
+        name: 'Personal',
+        emoji: '🏠',
+        tabs: 0
+      });
+    }
+
+    // 7. Create Random workspace for loose bookmarks (not in folders, visited in last 30 days)
+    // Collect all loose bookmarks from the bookmark tree
+    const looseBookmarks = [];
+    const bookmarkTree = await chrome.bookmarks.getTree();
+
+    // Get recent history URLs (30 days) for filtering
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const recentHistory = await chrome.history.search({
+      text: '',
+      startTime: thirtyDaysAgo,
+      maxResults: 10000
+    });
+    const recentUrls = new Set(recentHistory.map(item => item.url));
+
+    function collectLooseBookmarks(nodes, depth = 0) {
+      for (const node of nodes) {
+        // At depth 2, collect bookmarks (nodes with URL) that are NOT folders
+        if (depth === 2 && node.url && !node.children) {
+          looseBookmarks.push({
+            title: node.title,
+            url: node.url
+          });
+        }
+
+        // Recurse into folders
+        if (node.children) {
+          collectLooseBookmarks(node.children, depth + 1);
+        }
+      }
+    }
+
+    collectLooseBookmarks(bookmarkTree);
+    console.log(`[quickImport] Found ${looseBookmarks.length} loose bookmarks (not in folders)`);
+
+    // Filter to only those visited in last 30 days
+    const recentLooseBookmarks = looseBookmarks.filter(bm => recentUrls.has(bm.url));
+    console.log(`[quickImport] ${recentLooseBookmarks.length} loose bookmarks visited in last 30 days`);
+
+    // Create Random workspace if there are recent loose bookmarks
+    if (recentLooseBookmarks.length > 0) {
+      const randomWorkspace = await Storage.addWorkspace('Random', '🎲');
+      let addedCount = 0;
+
+      for (const bookmark of recentLooseBookmarks) {
+        try {
+          // Add if not already in favorites or other workspaces
+          if (!favoriteUrls.has(bookmark.url) && !workspaceUrls.has(bookmark.url)) {
+            const hostname = new URL(bookmark.url).hostname;
+            await Storage.addWorkspaceItem(randomWorkspace.id, {
+              url: bookmark.url,
+              title: bookmark.title || cleanTitle(hostname)
+            });
+            addedCount++;
+          }
+        } catch (err) {
+          // Skip invalid URLs
+        }
+      }
+
+      if (addedCount > 0) {
+        summary.workspaces.push({
+          name: 'Random',
+          emoji: '🎲',
+          tabs: addedCount
+        });
+      }
+    }
 
     return {
       success: true,
-      imported: toImport.length,
-      sites: toImport
+      summary: summary
     };
 
   } catch (error) {
@@ -284,6 +514,26 @@ async function quickImport() {
       error: error.message
     };
   }
+}
+
+/**
+ * Guess emoji for folder name
+ */
+function guessEmojiForFolder(name) {
+  const lower = name.toLowerCase();
+
+  if (lower.includes('work') || lower.includes('job') || lower.includes('office')) return '💼';
+  if (lower.includes('personal') || lower.includes('home')) return '🏠';
+  if (lower.includes('dev') || lower.includes('code') || lower.includes('programming')) return '💻';
+  if (lower.includes('read') || lower.includes('article') || lower.includes('news')) return '📰';
+  if (lower.includes('shop') || lower.includes('buy') || lower.includes('store')) return '🛒';
+  if (lower.includes('travel') || lower.includes('trip')) return '✈️';
+  if (lower.includes('recipe') || lower.includes('food') || lower.includes('cooking')) return '🍳';
+  if (lower.includes('music')) return '🎵';
+  if (lower.includes('video') || lower.includes('youtube')) return '📺';
+  if (lower.includes('learn') || lower.includes('study') || lower.includes('education')) return '📚';
+
+  return '📁';
 }
 
 /**
@@ -332,7 +582,7 @@ function showOnboardingModal(onComplete) {
 
     if (result.success) {
       hideModal();
-      showSuccessModal(result.sites);
+      showSuccessModal(result.summary);
       if (onComplete) onComplete();
     } else {
       alert('Import failed. Please try again or start empty.');
@@ -355,8 +605,11 @@ function showOnboardingModal(onComplete) {
 /**
  * Show success modal after import
  */
-function showSuccessModal(importedSites) {
-  const sitesList = importedSites.map(s => cleanTitle(s.hostname)).join(', ');
+function showSuccessModal(summary) {
+  // Build workspace list
+  const workspacesList = summary.workspaces
+    .map(ws => `${ws.emoji} ${ws.name} (${ws.tabs} tabs)`)
+    .join('<br>');
 
   showModal('You\'re All Set!', `
     <div class="onboarding-success">
@@ -364,18 +617,22 @@ function showSuccessModal(importedSites) {
       <h2 class="onboarding-title">Ready to go!</h2>
 
       <div class="onboarding-summary">
-        <p><strong>Added ${importedSites.length} favorites:</strong></p>
-        <p class="sites-list">${sitesList}</p>
+        <p><strong>✨ Added ${summary.favorites} favorites</strong></p>
+        <p style="color: var(--text-tertiary); font-size: 13px; margin-top: 4px;">
+          Your most-visited sites, ready for quick access
+        </p>
 
-        <p style="margin-top: 16px;"><strong>Created 2 workspaces:</strong></p>
-        <p>💼 Work • 🏠 Personal</p>
+        <p style="margin-top: 20px;"><strong>📁 Created ${summary.workspaces.length} workspaces:</strong></p>
+        <div style="margin-top: 8px; line-height: 1.8; color: var(--text-secondary); font-size: 13px;">
+          ${workspacesList}
+        </div>
       </div>
 
       <div class="onboarding-tip">
         <div class="tip-icon">💡</div>
         <div class="tip-content">
           <strong>Try it now!</strong><br>
-          Click any favorite above - it'll find your existing tab instead of opening a new one.
+          Click any favorite - it'll find your existing tab instead of opening a new one.
         </div>
       </div>
 
@@ -388,4 +645,183 @@ function showSuccessModal(importedSites) {
   document.getElementById('start-using-btn').addEventListener('click', () => {
     hideModal();
   });
+}
+
+/**
+ * Import all bookmark folders (for Settings - no 30-day filter)
+ * @returns {Promise<Object>} - Summary of imported workspaces
+ */
+async function importAllBookmarks() {
+  try {
+    console.log('[importAllBookmarks] Starting import...');
+
+    const summary = {
+      workspaces: [],
+      skipped: 0
+    };
+
+    // Get current state
+    const state = await Storage.getState();
+    console.log('[importAllBookmarks] Current state:', {
+      favorites: state.favorites.length,
+      workspaces: Object.keys(state.workspaces).length
+    });
+
+    // Track existing URLs in favorites and workspaces
+    const existingUrls = new Set();
+
+    // Add favorite URLs
+    state.favorites.forEach(fav => existingUrls.add(fav.url));
+    console.log('[importAllBookmarks] Existing favorite URLs:', existingUrls.size);
+
+    // Add workspace URLs
+    Object.values(state.workspaces).forEach(ws => {
+      ws.items.forEach(item => existingUrls.add(item.url));
+    });
+    console.log('[importAllBookmarks] Total existing URLs (favorites + workspaces):', existingUrls.size);
+
+    // Get ALL bookmark folders (no recency filter)
+    const bookmarkFolders = await extractBookmarkFolders(false);
+    console.log('[importAllBookmarks] Got bookmark folders:', bookmarkFolders.length);
+
+    // Create workspaces from bookmark folders
+    for (const folder of bookmarkFolders) {
+      console.log(`[importAllBookmarks] Processing folder "${folder.name}" with ${folder.bookmarks.length} bookmarks`);
+      const emoji = guessEmojiForFolder(folder.name);
+
+      // Check if workspace with this name already exists
+      const existingWorkspace = Object.values(state.workspaces).find(
+        ws => ws.name.toLowerCase() === folder.name.toLowerCase()
+      );
+
+      let workspace;
+      if (existingWorkspace) {
+        console.log(`[importAllBookmarks] Workspace "${folder.name}" already exists, adding to it`);
+        workspace = existingWorkspace;
+      } else {
+        console.log(`[importAllBookmarks] Creating new workspace "${folder.name}"`);
+        workspace = await Storage.addWorkspace(folder.name, emoji);
+      }
+
+      let addedCount = 0;
+      let skippedCount = 0;
+
+      // Add bookmarks (exclude if already exists)
+      for (const bookmark of folder.bookmarks) {
+        try {
+          if (!existingUrls.has(bookmark.url)) {
+            console.log(`[importAllBookmarks]   ✅ Adding: ${bookmark.title}`);
+            const hostname = new URL(bookmark.url).hostname;
+            await Storage.addWorkspaceItem(workspace.id, {
+              url: bookmark.url,
+              title: bookmark.title || cleanTitle(hostname)
+            });
+            existingUrls.add(bookmark.url);
+            addedCount++;
+          } else {
+            console.log(`[importAllBookmarks]   ⏭️  Skipping (already exists): ${bookmark.title}`);
+            skippedCount++;
+          }
+        } catch (err) {
+          console.log(`[importAllBookmarks]   ❌ Error adding bookmark:`, err);
+        }
+      }
+
+      console.log(`[importAllBookmarks] Folder "${folder.name}": added ${addedCount}, skipped ${skippedCount}`);
+
+      if (addedCount > 0 || !existingWorkspace) {
+        summary.workspaces.push({
+          name: folder.name,
+          emoji: emoji,
+          tabs: addedCount,
+          existing: !!existingWorkspace
+        });
+      }
+    }
+
+    // Import loose bookmarks (not in folders) to Random workspace
+    console.log('[importAllBookmarks] Collecting loose bookmarks...');
+    const looseBookmarks = [];
+    const bookmarkTree = await chrome.bookmarks.getTree();
+
+    function collectLooseBookmarks(nodes, depth = 0) {
+      for (const node of nodes) {
+        // At depth 2, collect bookmarks (nodes with URL) that are NOT folders
+        if (depth === 2 && node.url && !node.children) {
+          looseBookmarks.push({
+            title: node.title,
+            url: node.url
+          });
+        }
+
+        // Recurse into folders
+        if (node.children) {
+          collectLooseBookmarks(node.children, depth + 1);
+        }
+      }
+    }
+
+    collectLooseBookmarks(bookmarkTree);
+    console.log(`[importAllBookmarks] Found ${looseBookmarks.length} loose bookmarks (not in folders)`);
+
+    // Create or use existing Random workspace for loose bookmarks
+    if (looseBookmarks.length > 0) {
+      let randomWorkspace = Object.values(state.workspaces).find(
+        ws => ws.name.toLowerCase() === 'random'
+      );
+
+      if (!randomWorkspace) {
+        console.log('[importAllBookmarks] Creating Random workspace for loose bookmarks');
+        randomWorkspace = await Storage.addWorkspace('Random', '🎲');
+      } else {
+        console.log('[importAllBookmarks] Using existing Random workspace');
+      }
+
+      let addedCount = 0;
+      let skippedCount = 0;
+
+      for (const bookmark of looseBookmarks) {
+        try {
+          if (!existingUrls.has(bookmark.url)) {
+            console.log(`[importAllBookmarks]   ✅ Adding loose bookmark: ${bookmark.title}`);
+            const hostname = new URL(bookmark.url).hostname;
+            await Storage.addWorkspaceItem(randomWorkspace.id, {
+              url: bookmark.url,
+              title: bookmark.title || cleanTitle(hostname)
+            });
+            existingUrls.add(bookmark.url);
+            addedCount++;
+          } else {
+            console.log(`[importAllBookmarks]   ⏭️  Skipping (already exists): ${bookmark.title}`);
+            skippedCount++;
+          }
+        } catch (err) {
+          console.log(`[importAllBookmarks]   ❌ Error adding loose bookmark:`, err);
+        }
+      }
+
+      console.log(`[importAllBookmarks] Random workspace: added ${addedCount}, skipped ${skippedCount}`);
+
+      if (addedCount > 0 || !Object.values(state.workspaces).find(ws => ws.name.toLowerCase() === 'random')) {
+        summary.workspaces.push({
+          name: 'Random',
+          emoji: '🎲',
+          tabs: addedCount,
+          existing: !!Object.values(state.workspaces).find(ws => ws.name.toLowerCase() === 'random')
+        });
+      }
+    }
+
+    return {
+      success: true,
+      summary: summary
+    };
+
+  } catch (error) {
+    console.error('[Import Bookmarks] Failed:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
 }

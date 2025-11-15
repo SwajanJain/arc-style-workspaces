@@ -1,5 +1,5 @@
 // Storage Management
-// Handles all chrome.storage.sync operations with local caching
+// Handles all chrome.storage.local operations with in-memory caching
 
 const STORAGE_KEY = 'state.v1';
 
@@ -78,7 +78,7 @@ const Storage = {
     }
 
     return new Promise((resolve) => {
-      chrome.storage.sync.get([STORAGE_KEY], (result) => {
+      chrome.storage.local.get([STORAGE_KEY], (result) => {
         const state = result[STORAGE_KEY] || DEFAULT_STATE;
         stateCache = state;
         resolve(state);
@@ -89,9 +89,14 @@ const Storage = {
   // Save full state
   async setState(state) {
     stateCache = state;
-    return new Promise((resolve) => {
-      chrome.storage.sync.set({ [STORAGE_KEY]: state }, () => {
-        resolve();
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.set({ [STORAGE_KEY]: state }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('[Storage] Error saving state:', chrome.runtime.lastError);
+          reject(chrome.runtime.lastError);
+        } else {
+          resolve();
+        }
       });
     });
   },
@@ -148,20 +153,26 @@ const Storage = {
   },
 
   // Workspace operations
-  async addWorkspace(name) {
+  async addWorkspace(name, emoji = null) {
     const id = crypto.randomUUID();
-    return this.updateState(state => ({
+    const workspace = {
+      id,
+      name,
+      emoji: emoji,
+      items: [],
+      collapsed: false
+    };
+
+    await this.updateState(state => ({
       ...state,
       workspaces: {
         ...state.workspaces,
-        [id]: {
-          id,
-          name,
-          items: [],
-          collapsed: false
-        }
+        [id]: workspace
       }
     }));
+
+    // Return the workspace object (not the full state)
+    return workspace;
   },
 
   async removeWorkspace(id) {

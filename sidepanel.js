@@ -727,6 +727,23 @@ function showSettings() {
           </div>
         </div>
       </div>
+
+      <div class="settings-group">
+        <div class="settings-group-title">DATA</div>
+        <div class="setting-item">
+          <div class="setting-description">
+            <label class="setting-label">Import Bookmarks</label>
+            <p style="font-size: 12px; color: var(--text-tertiary); margin: 4px 0 0 0;">
+              Import all bookmark folders as workspaces
+            </p>
+          </div>
+          <div class="setting-control">
+            <button type="button" class="btn btn-secondary" id="import-bookmarks-btn" style="font-size: 13px; padding: 6px 12px;">
+              Import
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="form-actions">
       <button type="button" class="btn btn-secondary" id="cancel-settings">Cancel</button>
@@ -735,6 +752,66 @@ function showSettings() {
   `);
 
   document.getElementById('cancel-settings').addEventListener('click', hideModal);
+
+  document.getElementById('import-bookmarks-btn').addEventListener('click', async () => {
+    // Show confirmation
+    showConfirmDialog({
+      title: 'Import Bookmarks?',
+      message: 'This will import all bookmark folders as workspaces.<br><br>Existing workspaces will not be affected.',
+      confirmText: 'Import',
+      cancelText: 'Cancel',
+      danger: false,
+      onConfirm: async () => {
+        // Hide confirmation dialog and show loading in new modal
+        hideModal();
+
+        showModal('Importing Bookmarks', `
+          <div style="text-align: center; padding: 40px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📚</div>
+            <p style="color: var(--text-secondary);">Importing bookmark folders...</p>
+          </div>
+        `);
+
+        // Import bookmarks
+        const result = await importAllBookmarks();
+
+        if (result.success) {
+          // Show success message
+          const workspaceList = result.summary.workspaces
+            .map(ws => `${ws.emoji} ${ws.name} (${ws.tabs} new tabs)`)
+            .join('<br>');
+
+          showModal('Bookmarks Imported!', `
+            <div class="onboarding-success">
+              <div class="onboarding-icon">✅</div>
+              <h2 class="onboarding-title">Import Complete!</h2>
+
+              <div class="onboarding-summary">
+                <p><strong>📁 Imported ${result.summary.workspaces.length} bookmark folders:</strong></p>
+                <div style="margin-top: 8px; line-height: 1.8; color: var(--text-secondary); font-size: 13px;">
+                  ${workspaceList}
+                </div>
+              </div>
+
+              <button class="btn btn-primary" id="close-import-success">Done</button>
+            </div>
+          `);
+
+          document.getElementById('close-import-success').addEventListener('click', () => {
+            hideModal();
+            // Refresh UI
+            state = Storage.getState().then(s => {
+              state = s;
+              renderUI();
+            });
+          });
+        } else {
+          alert('Import failed: ' + result.error);
+        }
+      }
+    });
+  });
+
   document.getElementById('save-settings').addEventListener('click', async () => {
     const openBehavior = document.getElementById('open-behavior').value;
     const showOpenTabs = document.getElementById('show-open-tabs').checked;
