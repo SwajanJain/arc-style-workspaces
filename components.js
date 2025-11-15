@@ -43,12 +43,13 @@ function createFaviconElement(url, size = 20) {
 
 // Favorites Grid Component
 class FavoritesGrid {
-  constructor(container, state, onAdd, onRemove, onClick) {
+  constructor(container, state, onAdd, onRemove, onClick, tabStates = {}) {
     this.container = container;
     this.state = state;
     this.onAdd = onAdd;
     this.onRemove = onRemove;
     this.onClick = onClick;
+    this.tabStates = tabStates;
   }
 
   render() {
@@ -60,6 +61,19 @@ class FavoritesGrid {
       item.className = 'fav-item';
       item.title = fav.title || new URL(fav.url).hostname;
       item.dataset.id = fav.id;
+
+      // Add indicator classes based on tab state
+      const tabState = this.tabStates[fav.id];
+      if (tabState) {
+        if (tabState.isActive) {
+          item.classList.add('is-active');
+        } else if (tabState.tabCount > 1) {
+          item.classList.add('has-multiple-tabs');
+          item.setAttribute('data-tab-count', tabState.tabCount);
+        } else if (tabState.tabCount === 1) {
+          item.classList.add('is-open');
+        }
+      }
 
       const faviconUrl = getFaviconUrl(fav.url);
 
@@ -126,10 +140,11 @@ class FavoritesGrid {
 
 // Workspace Component
 class WorkspacesList {
-  constructor(container, state, callbacks) {
+  constructor(container, state, callbacks, tabStates = {}) {
     this.container = container;
     this.state = state;
     this.callbacks = callbacks;
+    this.tabStates = tabStates;
   }
 
   render() {
@@ -238,8 +253,26 @@ class WorkspacesList {
     div.className = 'workspace-item';
     div.dataset.id = item.id;
 
+    // Add indicator classes based on tab state
+    const tabState = this.tabStates[item.id];
+    if (tabState) {
+      if (tabState.isActive) {
+        div.classList.add('is-active');
+      } else if (tabState.tabCount > 1) {
+        div.classList.add('has-multiple-tabs');
+      } else if (tabState.tabCount === 1) {
+        div.classList.add('is-open');
+      }
+    }
+
     // Icon
     const icon = createFaviconElement(item.url);
+
+    // Add badge count attribute for CSS to display
+    if (tabState && tabState.tabCount > 1) {
+      icon.setAttribute('data-tab-count', tabState.tabCount);
+    }
+
     div.appendChild(icon);
 
     // Content

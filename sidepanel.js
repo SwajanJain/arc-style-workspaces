@@ -5,17 +5,115 @@ let favoritesGrid = null;
 let workspacesList = null;
 let searchTimeout = null;
 
+// Tab state tracking for indicators
+let tabStates = {
+  favorites: {}, // favoriteId -> { tabCount, isActive, tabIds[] }
+  workspaceItems: {} // itemId -> { tabCount, isActive, tabIds[] }
+};
+
+// Calculate tab states for all favorites and workspace items
+async function calculateTabStates() {
+  const tabs = await chrome.tabs.query({ currentWindow: true });
+  const activeTab = tabs.find(t => t.active);
+
+  // Reset states
+  tabStates = {
+    favorites: {},
+    workspaceItems: {}
+  };
+
+  // For each tab, check which favorites and workspace items match
+  for (const tab of tabs) {
+    if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('edge://')) {
+      continue;
+    }
+
+    // Check favorites
+    for (const fav of state.favorites) {
+      if (matchesUrl(tab.url, fav.url)) {
+        if (!tabStates.favorites[fav.id]) {
+          tabStates.favorites[fav.id] = { tabCount: 0, isActive: false, tabIds: [] };
+        }
+        tabStates.favorites[fav.id].tabCount++;
+        tabStates.favorites[fav.id].tabIds.push(tab.id);
+        if (tab.id === activeTab?.id) {
+          tabStates.favorites[fav.id].isActive = true;
+        }
+      }
+    }
+
+    // Check workspace items
+    for (const [workspaceId, workspace] of Object.entries(state.workspaces)) {
+      for (const item of workspace.items) {
+        if (matchesUrl(tab.url, item.url)) {
+          if (!tabStates.workspaceItems[item.id]) {
+            tabStates.workspaceItems[item.id] = { tabCount: 0, isActive: false, tabIds: [] };
+          }
+          tabStates.workspaceItems[item.id].tabCount++;
+          tabStates.workspaceItems[item.id].tabIds.push(tab.id);
+          if (tab.id === activeTab?.id) {
+            tabStates.workspaceItems[item.id].isActive = true;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Simple URL matching helper (domain-level matching like Arc)
+function matchesUrl(tabUrl, targetUrl) {
+  try {
+    const tabUrlObj = new URL(tabUrl);
+    const targetUrlObj = new URL(targetUrl);
+
+    // Arc-style behavior: Match at domain level
+    // When you favorite "news.almaconnect.com/feed", it should match
+    // ANY page on "news.almaconnect.com" (including /smartpublish, /settings, etc.)
+
+    // This ensures indicators stay visible when navigating within the same site
+    return tabUrlObj.hostname === targetUrlObj.hostname;
+  } catch {
+    return false;
+  }
+}
+
 // Initialize
 async function init() {
   state = await Storage.getState();
-  renderUI();
-  attachEventListeners();
 
-  // Listen for storage updates from other contexts
+  // Listen for storage updates from other contexts (always needed)
   window.addEventListener('storage-updated', (e) => {
     state = e.detail;
     renderUI();
   });
+
+  // Check for first launch - show onboarding
+  if (isFirstLaunch(state)) {
+    renderUI(); // Render empty UI first
+    attachEventListeners();
+
+    // Show onboarding modal
+    showOnboardingModal(async () => {
+      // After onboarding completes, refresh everything
+      state = await Storage.getState();
+      await calculateTabStates();
+      renderUI();
+      setupTabStateListeners();
+
+      if (state.preferences.showOpenTabs) {
+        loadOpenTabs();
+      }
+    });
+
+    return; // Don't continue with normal init
+  }
+
+  // Calculate tab states for indicators
+  await calculateTabStates();
+
+  renderUI();
+  attachEventListeners();
+  setupTabStateListeners();
 
   // Load open tabs if preference is enabled
   if (state.preferences.showOpenTabs) {
@@ -24,11 +122,23 @@ async function init() {
 }
 
 // Render entire UI
-function renderUI() {
+async function renderUI() {
   renderFavorites();
   renderWorkspaces();
   updateOpenTabsVisibility();
   updateFooterStats();
+}
+
+// Setup real-time tab state listeners
+function setupTabStateListeners() {
+  // Listen for tab activation (switching tabs)
+  chrome.tabs.onActivated.addListener(async (activeInfo) => {
+    await calculateTabStates();
+    renderUI();
+  });
+
+  // Note: onCreated, onRemoved, onUpdated listeners are already at bottom of file
+  // They will call calculateTabStates() + renderUI() when needed
 }
 
 // Render favorites grid
@@ -39,7 +149,8 @@ function renderFavorites() {
     state,
     handleAddFavorite,
     handleRemoveFavorite,
-    handleClickFavorite
+    handleClickFavorite,
+    tabStates.favorites // Pass tab states for indicators
   );
   favoritesGrid.render();
 }
@@ -56,7 +167,7 @@ function renderWorkspaces() {
     onRenameItem: handleRenameWorkspaceItem,
     onMoveItem: handleMoveWorkspaceItem,
     onRemoveItem: handleRemoveWorkspaceItem
-  });
+  }, tabStates.workspaceItems); // Pass tab states for indicators
   workspacesList.render();
 }
 
@@ -163,9 +274,8 @@ async function handleClickFavorite(fav, mode = null, event = null) {
       const tabs = await chrome.tabs.query({ currentWindow: true });
       const matchingTab = tabs.find(tab => {
         if (!tab.url) return false;
-        const canonicalTab = canonicalizeUrl(tab.url);
-        const canonicalFav = canonicalizeUrl(fav.url);
-        return canonicalTab.startsWith(canonicalFav);
+        // Use same domain-level matching as indicators
+        return matchesUrl(tab.url, fav.url);
       });
 
       if (matchingTab) {
@@ -324,9 +434,8 @@ async function handleOpenWorkspaceItem(item, mode = null, event = null) {
       const tabs = await chrome.tabs.query({ currentWindow: true });
       const matchingTab = tabs.find(tab => {
         if (!tab.url) return false;
-        const canonicalTab = canonicalizeUrl(tab.url);
-        const canonicalItem = canonicalizeUrl(item.url);
-        return canonicalTab.startsWith(canonicalItem);
+        // Use same domain-level matching as indicators
+        return matchesUrl(tab.url, item.url);
       });
 
       if (matchingTab) {
@@ -773,6 +882,10 @@ chrome.commands.onCommand.addListener((command) => {
 chrome.tabs.onCreated.addListener(async (tab) => {
   if (!state) return;
 
+  // Recalculate tab states for indicators
+  await calculateTabStates();
+  renderUI();
+
   // Refresh open tabs list if feature is enabled
   if (state.preferences?.showOpenTabs) {
     await loadOpenTabs();
@@ -811,6 +924,10 @@ chrome.tabs.onRemoved.addListener(async (closedTabId) => {
     state = await Storage.removeTabAlias(closedTabId);
   }
 
+  // Recalculate tab states for indicators
+  await calculateTabStates();
+  renderUI();
+
   // Refresh open tabs list if feature is enabled
   if (state.preferences?.showOpenTabs) {
     await loadOpenTabs();
@@ -820,7 +937,13 @@ chrome.tabs.onRemoved.addListener(async (closedTabId) => {
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (!state) return;
 
-  // Only refresh if URL or title changed and feature is enabled
+  // Recalculate tab states when URL changes
+  if (changeInfo.url || changeInfo.status === 'complete') {
+    await calculateTabStates();
+    renderUI();
+  }
+
+  // Refresh open tabs list if URL or title changed and feature is enabled
   if ((changeInfo.url || changeInfo.title) && state.preferences?.showOpenTabs) {
     await loadOpenTabs();
   }
