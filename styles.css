@@ -208,6 +208,28 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--spacing-sm);
+  padding: var(--spacing-xs);
+}
+
+.section-header .section-title {
+  margin-bottom: 0;
+}
+
+.clear-all-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+.clear-all-btn:hover {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
 }
 
 .add-workspace-btn {

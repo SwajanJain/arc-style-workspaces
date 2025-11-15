@@ -190,6 +190,9 @@ function attachEventListeners() {
   // Add workspace buttons
   document.getElementById('add-workspace-btn').addEventListener('click', handleAddWorkspace);
   document.getElementById('new-workspace-btn').addEventListener('click', handleAddWorkspace);
+
+  // Clear all tabs button
+  document.getElementById('clear-all-tabs-btn').addEventListener('click', handleClearAllTabs);
 }
 
 // Update footer stats
@@ -197,6 +200,32 @@ function updateFooterStats() {
   const favoritesCount = state.favorites.length;
   const tabsCount = Object.values(state.workspaces).reduce((sum, ws) => sum + ws.items.length, 0);
   document.getElementById('footer-stats').textContent = `${favoritesCount} favorites • ${tabsCount} tabs`;
+}
+
+// Clear all tabs handler
+async function handleClearAllTabs() {
+  try {
+    // Get all tabs in current window
+    const allTabs = await chrome.tabs.query({ currentWindow: true });
+
+    // Find tabs to close (not pinned AND not active)
+    const tabsToClose = allTabs.filter(tab => !tab.pinned && !tab.active);
+
+    if (tabsToClose.length === 0) {
+      return; // Nothing to close
+    }
+
+    // Close them
+    const tabIds = tabsToClose.map(t => t.id);
+    await chrome.tabs.remove(tabIds);
+
+    // Refresh open tabs list
+    if (state.preferences.showOpenTabs) {
+      loadOpenTabs();
+    }
+  } catch (error) {
+    console.error('[Clear All] Failed to close tabs:', error);
+  }
 }
 
 // Favorites handlers
