@@ -900,6 +900,41 @@ body {
   border-color: var(--accent-hover);
 }
 
+.btn-danger {
+  background: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Confirmation Dialog */
+.confirm-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+}
+
+.confirm-message {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.confirm-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+.confirm-buttons .btn {
+  min-width: 80px;
+}
+
 /* Settings Panel */
 .settings-panel {
   display: flex;

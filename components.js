@@ -98,7 +98,14 @@ class FavoritesGrid {
       `;
       closeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        this.onRemove(fav.id);
+        showConfirmDialog({
+          title: 'Remove Favorite?',
+          message: `Remove "${fav.title || new URL(fav.url).hostname}" from favorites?<br><br>You can always add it back later.`,
+          confirmText: 'Remove',
+          cancelText: 'Cancel',
+          danger: true,
+          onConfirm: () => this.onRemove(fav.id)
+        });
       });
       item.appendChild(closeBtn);
 
@@ -115,7 +122,16 @@ class FavoritesGrid {
           { divider: true },
           {
             label: 'Remove from favorites',
-            onClick: () => this.onRemove(fav.id),
+            onClick: () => {
+              showConfirmDialog({
+                title: 'Remove Favorite?',
+                message: `Remove "${fav.title || new URL(fav.url).hostname}" from favorites?<br><br>You can always add it back later.`,
+                confirmText: 'Remove',
+                cancelText: 'Cancel',
+                danger: true,
+                onConfirm: () => this.onRemove(fav.id)
+              });
+            },
             danger: true
           }
         ]);
@@ -446,6 +462,40 @@ function showModal(title, content, onConfirm) {
 function hideModal() {
   const overlay = document.getElementById('modal-overlay');
   overlay.style.display = 'none';
+}
+
+/**
+ * Show confirmation dialog
+ * @param {Object} options - { title, message, confirmText, cancelText, danger, onConfirm }
+ */
+function showConfirmDialog({ title, message, confirmText = 'Confirm', cancelText = 'Cancel', danger = false, onConfirm }) {
+  const dangerClass = danger ? 'btn-danger' : 'btn-primary';
+
+  showModal(title, `
+    <div class="confirm-dialog">
+      <p class="confirm-message">${message}</p>
+      <div class="confirm-buttons">
+        <button class="btn btn-secondary" id="confirm-cancel-btn">${cancelText}</button>
+        <button class="btn ${dangerClass}" id="confirm-ok-btn">${confirmText}</button>
+      </div>
+    </div>
+  `);
+
+  // Cancel button
+  document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
+    hideModal();
+  });
+
+  // Confirm button
+  document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+    hideModal();
+    if (onConfirm) onConfirm();
+  });
+
+  // Focus confirm button
+  setTimeout(() => {
+    document.getElementById('confirm-cancel-btn').focus();
+  }, 100);
 }
 
 // Click outside to close
