@@ -20,11 +20,12 @@ function getDomainInitial(url) {
 }
 
 // Create favicon element with fallback
-function createFaviconElement(url, size = 20) {
+function createFaviconElement(url, size = 20, customIcon = null) {
   const container = document.createElement('div');
   container.className = 'workspace-item-icon';
 
-  const faviconUrl = getFaviconUrl(url);
+  // Use custom icon if provided, otherwise use Chrome's favicon API
+  const faviconUrl = customIcon || getFaviconUrl(url);
 
   if (faviconUrl) {
     const img = document.createElement('img');
@@ -281,8 +282,8 @@ class WorkspacesList {
       }
     }
 
-    // Icon
-    const icon = createFaviconElement(item.url);
+    // Icon (use custom icon if provided)
+    const icon = createFaviconElement(item.url, 20, item.icon);
 
     // Add badge count attribute for CSS to display
     if (tabState && tabState.tabCount > 1) {

@@ -181,8 +181,22 @@ function updateOpenTabsVisibility() {
 function attachEventListeners() {
   // Search
   const searchInput = document.getElementById('quick-search');
+  const searchContainer = document.querySelector('.search-container');
+
   searchInput.addEventListener('input', handleSearch);
   searchInput.addEventListener('keydown', handleSearchKeydown);
+
+  // Toggle has-input class for floating + button visibility
+  searchInput.addEventListener('input', (e) => {
+    if (e.target.value.trim().length > 0) {
+      searchContainer.classList.add('has-input');
+    } else {
+      searchContainer.classList.remove('has-input');
+    }
+  });
+
+  // Search new tab button
+  document.getElementById('search-new-tab-btn').addEventListener('click', handleNewTab);
 
   // Settings
   document.getElementById('settings-btn').addEventListener('click', showSettings);
@@ -193,6 +207,81 @@ function attachEventListeners() {
 
   // Clear all tabs button
   document.getElementById('clear-all-tabs-btn').addEventListener('click', handleClearAllTabs);
+
+  // New tab button
+  document.getElementById('new-tab-btn').addEventListener('click', handleNewTab);
+
+  // Navigation buttons
+  document.getElementById('nav-back-btn').addEventListener('click', handleNavBack);
+  document.getElementById('nav-forward-btn').addEventListener('click', handleNavForward);
+
+  // Update navigation buttons when tabs change
+  chrome.tabs.onActivated.addListener(updateNavigationButtons);
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === 'complete') {
+      updateNavigationButtons();
+    }
+  });
+
+  // Initial update
+  updateNavigationButtons();
+}
+
+// Handle new tab creation
+async function handleNewTab() {
+  try {
+    await chrome.tabs.create({});
+  } catch (err) {
+    console.error('[NewTab] Error creating new tab:', err);
+  }
+}
+
+// Handle navigation back
+async function handleNavBack() {
+  try {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (activeTab) {
+      await chrome.tabs.goBack(activeTab.id);
+    }
+  } catch (err) {
+    console.error('[Nav] Error going back:', err);
+  }
+}
+
+// Handle navigation forward
+async function handleNavForward() {
+  try {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (activeTab) {
+      await chrome.tabs.goForward(activeTab.id);
+    }
+  } catch (err) {
+    console.error('[Nav] Error going forward:', err);
+  }
+}
+
+// Update navigation buttons based on active tab
+async function updateNavigationButtons() {
+  try {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    const backBtn = document.getElementById('nav-back-btn');
+    const forwardBtn = document.getElementById('nav-forward-btn');
+
+    if (!activeTab) {
+      backBtn.disabled = true;
+      forwardBtn.disabled = true;
+      return;
+    }
+
+    // Check if we can go back/forward
+    // Note: Chrome doesn't have a direct API to check history state
+    // We'll enable them optimistically and let Chrome handle the actual capability
+    backBtn.disabled = false;
+    forwardBtn.disabled = false;
+  } catch (err) {
+    console.error('[Nav] Error updating navigation buttons:', err);
+  }
 }
 
 // Update footer stats
@@ -652,7 +741,7 @@ function showSearchResults(results) {
   // Attach click handlers
   container.querySelectorAll('.search-result-item').forEach((el, index) => {
     el.addEventListener('click', () => {
-      openUrl(results[index].url, state.preferences.openBehavior);
+      openUrl(results[index].url, 'new-tab');
       hideSearchResults();
       document.getElementById('quick-search').value = '';
     });
@@ -664,6 +753,8 @@ function hideSearchResults() {
   if (container) {
     container.remove();
   }
+  // Remove has-input class to show the floating + button again
+  document.querySelector('.search-container')?.classList.remove('has-input');
 }
 
 function handleSearchKeydown(e) {
@@ -877,12 +968,32 @@ async function loadOpenTabs() {
   container.innerHTML = tabs.map(tab => {
     const alias = state.tabAliases?.[tab.id] || null;
     const displayTitle = alias || tab.title;
+    const isActive = tab.active;
 
     return `
-      <div class="tab-item" data-tab-id="${tab.id}">
+      <div class="tab-item ${isActive ? 'active' : ''}" data-tab-id="${tab.id}">
         <div class="tab-item-icon">${createFaviconElement(tab.url, 18).outerHTML}</div>
         <div class="tab-item-title" title="${escapeHtml(tab.title)}">${escapeHtml(displayTitle)}</div>
-        <button class="tab-item-close" data-tab-id="${tab.id}" title="Close tab">×</button>
+        <div class="tab-item-actions">
+          <div class="tab-status-indicator"></div>
+          <div class="tab-nav-controls">
+            <button class="tab-nav-btn" data-action="back" data-tab-id="${tab.id}" title="Go back">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M9 11L5 7L9 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="tab-nav-btn" data-action="forward" data-tab-id="${tab.id}" title="Go forward">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 3L9 7L5 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <button class="tab-nav-btn tab-close-btn" data-action="close" data-tab-id="${tab.id}" title="Close tab">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     `;
   }).join('');
@@ -890,8 +1001,8 @@ async function loadOpenTabs() {
   // Click to activate tab
   container.querySelectorAll('.tab-item').forEach(el => {
     el.addEventListener('click', (e) => {
-      // Don't activate if clicking close button
-      if (e.target.classList.contains('tab-item-close')) return;
+      // Don't activate if clicking navigation buttons
+      if (e.target.closest('.tab-nav-controls')) return;
 
       const tabId = parseInt(el.dataset.tabId);
       chrome.tabs.update(tabId, { active: true });
@@ -905,13 +1016,24 @@ async function loadOpenTabs() {
     });
   });
 
-  // Close button handlers
-  container.querySelectorAll('.tab-item-close').forEach(btn => {
+  // Tab navigation button handlers
+  container.querySelectorAll('.tab-nav-btn').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
+      const action = btn.dataset.action;
       const tabId = parseInt(btn.dataset.tabId);
-      await chrome.tabs.remove(tabId);
-      // Tab will be removed from list automatically by onRemoved listener
+
+      try {
+        if (action === 'back') {
+          await chrome.tabs.goBack(tabId);
+        } else if (action === 'forward') {
+          await chrome.tabs.goForward(tabId);
+        } else if (action === 'close') {
+          await chrome.tabs.remove(tabId);
+        }
+      } catch (err) {
+        console.error(`[TabNav] Error performing ${action}:`, err);
+      }
     });
   });
 }

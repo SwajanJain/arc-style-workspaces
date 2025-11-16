@@ -537,6 +537,30 @@ function guessEmojiForFolder(name) {
 }
 
 /**
+ * Create Google Workspace with all Google services
+ */
+async function createGoogleWorkspace() {
+  const workspace = await Storage.addWorkspace('Google Workspace', '🌐');
+
+  const googleServices = [
+    { url: 'https://mail.google.com/mail', alias: 'Gmail', icon: 'https://www.google.com/gmail/about/static-2.0/images/logo-gmail.png' },
+    { url: 'https://calendar.google.com/calendar', alias: 'Calendar', icon: 'https://calendar.google.com/googlecalendar/images/favicons_2020q4/calendar_2020q4.ico' },
+    { url: 'https://drive.google.com/drive', alias: 'Drive', icon: 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png' },
+    { url: 'https://docs.google.com/document/u/0/', alias: 'Docs', icon: 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico' },
+    { url: 'https://docs.google.com/spreadsheets/u/0/', alias: 'Sheets', icon: 'https://ssl.gstatic.com/docs/spreadsheets/favicon3.ico' },
+    { url: 'https://docs.google.com/presentation/u/0/', alias: 'Slides', icon: 'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico' },
+    { url: 'https://meet.google.com/', alias: 'Meet', icon: 'https://fonts.gstatic.com/s/i/productlogos/meet_2020q4/v6/web-512dp/logo_meet_2020q4_color_2x_web_512dp.png' },
+    { url: 'https://mail.google.com/chat', alias: 'Chat', icon: 'https://www.gstatic.com/images/branding/product/2x/chat_2020q4_48dp.png' }
+  ];
+
+  for (const service of googleServices) {
+    await Storage.addWorkspaceItem(workspace.id, service);
+  }
+
+  return workspace;
+}
+
+/**
  * Check if this is first launch (no favorites, no workspaces)
  */
 function isFirstLaunch(state) {
@@ -556,6 +580,16 @@ function showOnboardingModal(onComplete) {
         Experience Arc's magic: click a favorite, and we'll find your existing tab
         instead of opening a new one.
       </p>
+
+      <div style="margin: 20px 0; padding: 12px; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px solid var(--border-medium);">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+          <input type="checkbox" id="add-google-workspace-checkbox" checked style="width: 16px; height: 16px; cursor: pointer;" />
+          <div>
+            <div style="font-size: 13px; font-weight: 500; color: var(--text-primary);">📦 Add Google Workspace</div>
+            <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet, Chat</div>
+          </div>
+        </label>
+      </div>
 
       <div class="onboarding-cta">
         <button class="btn btn-primary btn-large" id="quick-import-btn">
@@ -577,12 +611,20 @@ function showOnboardingModal(onComplete) {
     btn.disabled = true;
     btn.innerHTML = '<span>⚡ Setting up...</span>';
 
-    // Run import
+    // Check if Google Workspace should be added
+    const shouldAddGoogleWorkspace = document.getElementById('add-google-workspace-checkbox').checked;
+
+    // Add Google Workspace FIRST (so it appears at top)
+    if (shouldAddGoogleWorkspace) {
+      await createGoogleWorkspace();
+    }
+
+    // Run import (creates workspaces after Google Workspace)
     const result = await quickImport();
 
     if (result.success) {
       hideModal();
-      showSuccessModal(result.summary);
+      showSuccessModal(result.summary, shouldAddGoogleWorkspace);
       if (onComplete) onComplete();
     } else {
       alert('Import failed. Please try again or start empty.');
@@ -593,7 +635,15 @@ function showOnboardingModal(onComplete) {
 
   // Skip handler
   document.getElementById('skip-onboarding-btn').addEventListener('click', async () => {
-    // Just create empty workspaces
+    // Check if Google Workspace should be added
+    const shouldAddGoogleWorkspace = document.getElementById('add-google-workspace-checkbox').checked;
+
+    // Add Google Workspace FIRST (so it appears at top)
+    if (shouldAddGoogleWorkspace) {
+      await createGoogleWorkspace();
+    }
+
+    // Create empty workspaces
     await Storage.addWorkspace('Work', '💼');
     await Storage.addWorkspace('Personal', '🏠');
 
@@ -605,11 +655,29 @@ function showOnboardingModal(onComplete) {
 /**
  * Show success modal after import
  */
-function showSuccessModal(summary) {
+function showSuccessModal(summary, hasGoogleWorkspace = false) {
   // Build workspace list
   const workspacesList = summary.workspaces
-    .map(ws => `${ws.emoji} ${ws.name} (${ws.tabs} tabs)`)
+    .map(ws => `${ws.emoji} ${ws.name} (${ws.tabs} tab${ws.tabs !== 1 ? 's' : ''})`)
     .join('<br>');
+
+  // Check if there are empty workspaces
+  const hasEmptyWorkspaces = summary.workspaces.some(ws => ws.tabs === 0);
+  const emptyWorkspaceHint = hasEmptyWorkspaces ? `
+    <div style="margin-top: 12px; padding: 8px 12px; background: var(--bg-tertiary); border-radius: 6px; font-size: 12px; color: var(--text-secondary);">
+      💡 Empty workspaces? Go to Settings → Import Bookmarks to add all your bookmarks folders
+    </div>
+  ` : '';
+
+  // Google Workspace mention
+  const googleWorkspaceInfo = hasGoogleWorkspace ? `
+    <div style="margin-top: 16px; padding: 10px 12px; background: rgba(66, 133, 244, 0.1); border: 1px solid rgba(66, 133, 244, 0.3); border-radius: 6px; font-size: 12px; color: var(--text-secondary);">
+      🌐 <strong style="color: var(--text-primary);">Google Workspace</strong> added with Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet & Chat
+    </div>
+  ` : '';
+
+  // Calculate total workspaces (including Google Workspace if added)
+  const totalWorkspaces = summary.workspaces.length + (hasGoogleWorkspace ? 1 : 0);
 
   showModal('You\'re All Set!', `
     <div class="onboarding-success">
@@ -622,17 +690,19 @@ function showSuccessModal(summary) {
           Your most-visited sites, ready for quick access
         </p>
 
-        <p style="margin-top: 20px;"><strong>📁 Created ${summary.workspaces.length} workspaces:</strong></p>
+        <p style="margin-top: 20px;"><strong>📁 Created ${totalWorkspaces} workspace${totalWorkspaces !== 1 ? 's' : ''}:</strong></p>
+        ${googleWorkspaceInfo}
         <div style="margin-top: 8px; line-height: 1.8; color: var(--text-secondary); font-size: 13px;">
           ${workspacesList}
         </div>
+        ${emptyWorkspaceHint}
       </div>
 
       <div class="onboarding-tip">
-        <div class="tip-icon">💡</div>
+        <div class="tip-icon">🎯</div>
         <div class="tip-content">
-          <strong>Try it now!</strong><br>
-          Click any favorite - it'll find your existing tab instead of opening a new one.
+          <strong>Smart Tab Switching</strong><br>
+          Click any favorite or workspace item - we'll instantly switch to your existing tab instead of opening duplicates. No more tab clutter!
         </div>
       </div>
 
