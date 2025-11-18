@@ -162,6 +162,7 @@ class WorkspacesList {
     this.state = state;
     this.callbacks = callbacks;
     this.tabStates = tabStates;
+    this.editingWorkspaceId = null; // Track which workspace is being edited
   }
 
   render() {
@@ -186,7 +187,8 @@ class WorkspacesList {
 
   createWorkspaceElement(workspace) {
     const div = document.createElement('div');
-    div.className = `workspace ${workspace.collapsed ? 'collapsed' : ''}`;
+    const isEditing = this.editingWorkspaceId === workspace.id;
+    div.className = `workspace ${workspace.collapsed ? 'collapsed' : ''} ${isEditing ? 'editing' : ''}`;
     div.dataset.id = workspace.id;
 
     // Header
@@ -203,18 +205,23 @@ class WorkspacesList {
       'default': '📁'
     };
     const icon = workspaceIcons[workspace.name] || workspaceIcons['default'];
+    const editIcon = isEditing ? '✏️' : icon;
 
     header.innerHTML = `
       <svg class="workspace-chevron" viewBox="0 0 20 20" fill="none">
         <path d="M7 4L13 10L7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="workspace-icon">${icon}</span>
-      <span class="workspace-name">${this.escapeHtml(workspace.name)}</span>
+      <span class="workspace-icon">${editIcon}</span>
+      <span class="workspace-name">${this.escapeHtml(workspace.name)}${isEditing ? ' (Editing...)' : ''}</span>
       <span class="workspace-count">${workspace.items.length}</span>
     `;
-    header.addEventListener('click', () => {
-      this.callbacks.onToggleCollapse(workspace.id);
-    });
+
+    // Only allow collapse toggle when not editing
+    if (!isEditing) {
+      header.addEventListener('click', () => {
+        this.callbacks.onToggleCollapse(workspace.id);
+      });
+    }
 
     // Context menu for workspace
     header.addEventListener('contextmenu', (e) => {
@@ -224,6 +231,10 @@ class WorkspacesList {
         {
           label: 'Rename',
           onClick: () => this.callbacks.onRenameWorkspace(workspace.id)
+        },
+        {
+          label: 'Edit items',
+          onClick: () => this.enterEditMode(workspace.id)
         },
         { divider: true },
         {
@@ -242,30 +253,45 @@ class WorkspacesList {
 
     // Render items
     workspace.items.forEach(item => {
-      const itemEl = this.createWorkspaceItem(workspace.id, item);
+      const itemEl = this.createWorkspaceItem(workspace.id, item, isEditing);
       itemsContainer.appendChild(itemEl);
     });
 
-    // Add item button
-    const addBtn = document.createElement('button');
-    addBtn.className = 'add-item-btn';
-    addBtn.innerHTML = `
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      <span>Add tab</span>
-    `;
-    addBtn.addEventListener('click', () => {
-      this.callbacks.onAddItem(workspace.id);
-    });
-    itemsContainer.appendChild(addBtn);
+    // Add item button or Done editing button
+    if (isEditing) {
+      const doneBtn = document.createElement('button');
+      doneBtn.className = 'done-editing-btn';
+      doneBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M11 4L5 10L2 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Done Editing</span>
+      `;
+      doneBtn.addEventListener('click', () => {
+        this.exitEditMode();
+      });
+      itemsContainer.appendChild(doneBtn);
+    } else {
+      const addBtn = document.createElement('button');
+      addBtn.className = 'add-item-btn';
+      addBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>Add tab</span>
+      `;
+      addBtn.addEventListener('click', () => {
+        this.callbacks.onAddItem(workspace.id);
+      });
+      itemsContainer.appendChild(addBtn);
+    }
 
     div.appendChild(itemsContainer);
 
     return div;
   }
 
-  createWorkspaceItem(workspaceId, item) {
+  createWorkspaceItem(workspaceId, item, isEditing = false) {
     const div = document.createElement('div');
     div.className = 'workspace-item';
     div.dataset.id = item.id;
@@ -303,16 +329,32 @@ class WorkspacesList {
     content.appendChild(title);
     div.appendChild(content);
 
-    // Click handler
-    div.addEventListener('click', (e) => {
-      this.callbacks.onOpenItem(item, null, e);
-    });
+    // Delete button in edit mode
+    if (isEditing) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'item-delete-btn';
+      deleteBtn.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      `;
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.callbacks.onRemoveItem(workspaceId, item.id);
+      });
+      div.appendChild(deleteBtn);
+    } else {
+      // Click handler (only when not editing)
+      div.addEventListener('click', (e) => {
+        this.callbacks.onOpenItem(item, null, e);
+      });
 
-    // Context menu
-    div.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      this.showItemContextMenu(e, workspaceId, item);
-    });
+      // Context menu
+      div.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        this.showItemContextMenu(e, workspaceId, item);
+      });
+    }
 
     return div;
   }
@@ -377,6 +419,16 @@ class WorkspacesList {
     }
   }
 
+  enterEditMode(workspaceId) {
+    this.editingWorkspaceId = workspaceId;
+    this.render();
+  }
+
+  exitEditMode() {
+    this.editingWorkspaceId = null;
+    this.render();
+  }
+
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -394,6 +446,71 @@ function showContextMenu(x, y, items) {
       const divider = document.createElement('div');
       divider.className = 'context-menu-divider';
       menu.appendChild(divider);
+    } else if (item.submenu) {
+      // Handle submenu items
+      const menuItem = document.createElement('div');
+      menuItem.className = 'context-menu-item has-submenu';
+      menuItem.innerHTML = `
+        <span>${item.label}</span>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style="margin-left: auto;">
+          <path d="M4 2L8 6L4 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `;
+
+      // Create submenu container
+      const submenu = document.createElement('div');
+      submenu.className = 'context-submenu';
+      item.submenu.forEach(subItem => {
+        const subMenuItem = document.createElement('div');
+        subMenuItem.className = 'context-menu-item';
+        subMenuItem.textContent = subItem.label;
+        subMenuItem.addEventListener('click', () => {
+          subItem.onClick();
+          hideContextMenu();
+        });
+        submenu.appendChild(subMenuItem);
+      });
+
+      menuItem.appendChild(submenu);
+
+      // Show submenu on hover
+      menuItem.addEventListener('mouseenter', () => {
+        submenu.style.display = 'block';
+
+        // Smart positioning: check available space on both sides
+        setTimeout(() => {
+          const menuItemRect = menuItem.getBoundingClientRect();
+          const submenuRect = submenu.getBoundingClientRect();
+          const spaceOnRight = window.innerWidth - menuItemRect.right;
+          const spaceOnLeft = menuItemRect.left;
+
+          // If not enough room on either side, overlay on top
+          if (submenuRect.width > spaceOnRight && submenuRect.width > spaceOnLeft) {
+            submenu.style.left = '0';
+            submenu.style.right = 'auto';
+            submenu.style.marginLeft = '0';
+            submenu.style.marginRight = '0';
+          }
+          // If overflow on right but room on left
+          else if (submenuRect.right > window.innerWidth && spaceOnLeft > submenuRect.width) {
+            submenu.style.left = 'auto';
+            submenu.style.right = '100%';
+            submenu.style.marginLeft = '0';
+            submenu.style.marginRight = '4px';
+          }
+          // Otherwise keep on right (default)
+        }, 0);
+      });
+      menuItem.addEventListener('mouseleave', () => {
+        submenu.style.display = 'none';
+        // Reset positioning
+        submenu.style.left = '100%';
+        submenu.style.right = 'auto';
+        submenu.style.marginLeft = '4px';
+        submenu.style.marginRight = '0';
+      });
+
+      menu.appendChild(menuItem);
     } else {
       const menuItem = document.createElement('div');
       menuItem.className = `context-menu-item ${item.danger ? 'danger' : ''}`;

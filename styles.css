@@ -743,6 +743,74 @@ body {
   height: 12px;
 }
 
+/* Edit Mode Styles */
+.workspace.editing {
+  background: rgba(59, 130, 246, 0.05);
+  border-left: 2px solid rgba(59, 130, 246, 0.3);
+  padding-left: 10px;
+  margin-left: -12px;
+}
+
+.workspace.editing .workspace-name {
+  color: var(--accent-color);
+}
+
+.item-delete-btn {
+  position: absolute;
+  right: var(--spacing-sm);
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.item-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.item-delete-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+.done-editing-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 8px var(--spacing-sm);
+  width: 100%;
+  border: none;
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--accent-color);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: var(--radius-md);
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.done-editing-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--accent-hover);
+}
+
+.done-editing-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
 .new-workspace-btn {
   display: flex;
   align-items: center;
@@ -991,6 +1059,33 @@ body {
   height: 1px;
   background: var(--border-color);
   margin: var(--spacing-xs) 0;
+}
+
+.context-menu-item.has-submenu {
+  position: relative;
+  padding-right: var(--spacing-lg);
+}
+
+.context-submenu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  min-width: 160px;
+  max-width: 200px;
+  padding: var(--spacing-xs);
+  z-index: 1001;
+  margin-left: 4px;
+}
+
+.context-submenu .context-menu-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Modal */
@@ -1381,6 +1476,74 @@ body {
   color: var(--text-tertiary);
   font-size: 12px;
   line-height: 1.6;
+}
+
+.onboarding-benefits {
+  margin: var(--spacing-lg) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  text-align: left;
+}
+
+.onboarding-benefit {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: flex-start;
+}
+
+.onboarding-benefit-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.onboarding-benefit-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.onboarding-benefit-text strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.onboarding-toggle {
+  margin-top: var(--spacing-md);
+  text-align: left;
+}
+
+.onboarding-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.onboarding-checkbox-row input {
+  margin-top: 3px;
+}
+
+.onboarding-checkbox-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.onboarding-checkbox-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.onboarding-footer-note {
+  margin-top: var(--spacing-md);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: left;
 }
 
 .onboarding-tip {

@@ -158,6 +158,10 @@ function renderFavorites() {
 // Render workspaces
 function renderWorkspaces() {
   const container = document.getElementById('workspaces-list');
+
+  // Preserve editing state across re-renders
+  const previousEditingId = workspacesList?.editingWorkspaceId || null;
+
   workspacesList = new WorkspacesList(container, state, {
     onToggleCollapse: handleToggleWorkspaceCollapse,
     onRenameWorkspace: handleRenameWorkspace,
@@ -168,6 +172,12 @@ function renderWorkspaces() {
     onMoveItem: handleMoveWorkspaceItem,
     onRemoveItem: handleRemoveWorkspaceItem
   }, tabStates.workspaceItems); // Pass tab states for indicators
+
+  // Restore editing state
+  if (previousEditingId) {
+    workspacesList.editingWorkspaceId = previousEditingId;
+  }
+
   workspacesList.render();
 }
 
