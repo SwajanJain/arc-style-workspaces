@@ -1573,3 +1573,361 @@ body {
   display: block;
   margin-bottom: 4px;
 }
+
+/* ========================================
+   TAB GROUPING FEATURE
+   ======================================== */
+
+/* Grouping Banner */
+.grouping-banner {
+  width: 100%;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.grouping-banner-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.grouping-banner-icon {
+  font-size: 14px;
+}
+
+.grouping-banner-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #93C5FD;
+  flex: 1;
+}
+
+.grouping-banner-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 14px;
+  height: 14px;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #93C5FD;
+  transition: background 0.2s;
+}
+
+.grouping-banner-dismiss:hover {
+  background: rgba(59, 130, 246, 0.2);
+}
+
+.grouping-banner-description {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.grouping-banner-group-btn {
+  width: 100%;
+  padding: 8px 12px;
+  background: #3B82F6;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.grouping-banner-group-btn:hover {
+  background: #2563EB;
+}
+
+/* Dismissed Tooltip */
+.grouping-dismissed-tooltip {
+  width: 100%;
+  padding: 12px;
+  background: #262626;
+  border: 1px solid #404040;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.grouping-dismissed-tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.grouping-dismissed-tooltip-icon {
+  font-size: 16px;
+}
+
+.grouping-dismissed-tooltip-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: #D1D5DB;
+  flex: 1;
+}
+
+.grouping-dismissed-tooltip-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 14px;
+  height: 14px;
+  padding: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: background 0.2s;
+}
+
+.grouping-dismissed-tooltip-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.grouping-dismissed-tooltip-description {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Small Grouping Button */
+.grouping-small-button {
+  width: 100%;
+  padding: 6px 8px;
+  background: rgba(38, 38, 38, 0.5);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grouping-small-button-text {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+.grouping-small-button-action {
+  font-size: 12px;
+  color: #60A5FA;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.grouping-small-button-action:hover {
+  color: #93C5FD;
+  background: rgba(96, 165, 250, 0.1);
+}
+
+/* Ungroup Button */
+.ungroup-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ungroup-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Grouped Tabs Container */
+.grouped-tabs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Tab Group */
+.tab-group {
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.tab-group-header {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 8px;
+}
+
+.tab-group-header:hover {
+  background: var(--bg-hover);
+}
+
+.tab-group-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: #6B7280;
+  transition: transform 0.2s;
+}
+
+.tab-group.collapsed .tab-group-chevron {
+  transform: rotate(0deg);
+}
+
+.tab-group:not(.collapsed) .tab-group-chevron {
+  transform: rotate(90deg);
+}
+
+.tab-group-domain {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-group-count {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.tab-group-close {
+  width: 12px;
+  height: 12px;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.tab-group-header:hover .tab-group-close {
+  opacity: 1;
+}
+
+.tab-group-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+}
+
+/* Tab Group Content */
+.tab-group-content {
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tab-group-content .tab-item {
+  padding-left: 8px;
+}
+
+/* Tab Singles Section */
+.tab-singles-section {
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.tab-singles-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin-bottom: 8px;
+}
+
+.tab-singles-label {
+  font-size: 12px;
+  color: #6B7280;
+  margin-bottom: 8px;
+  padding-left: 8px;
+}
+
+/* ========================================
+   DRAG AND DROP
+   ======================================== */
+
+/* Draggable elements */
+.draggable {
+  cursor: grab;
+  transition: all 0.2s;
+}
+
+.draggable.dragging {
+  opacity: 0.5 !important;
+  transform: scale(1.02) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+  z-index: 1000 !important;
+  cursor: grabbing !important;
+}
+
+/* Drop indicator */
+.drop-indicator {
+  height: 2px;
+  background: #3B82F6;
+  margin: 2px 0;
+  border-radius: 1px;
+  animation: pulse 0.6s ease-in-out infinite;
+}
+
+.drop-target {
+  outline: 1px dashed var(--border-strong);
+  background: rgba(59, 130, 246, 0.06);
+  transition: background 0.15s ease, outline-color 0.15s ease;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Draggable hover states */
+.fav-item.draggable:hover {
+  transform: translateY(-1px);
+}
+
+.tab-item.draggable:hover {
+  background: var(--bg-hover);
+}
+
+.workspace-item.draggable:hover {
+  background: var(--bg-hover);
+}
+
+/* Prevent text selection during drag */
+.dragging * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}

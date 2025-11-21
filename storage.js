@@ -19,7 +19,12 @@ const DEFAULT_STATE = {
     stripTrackingParams: true
   },
   tabAliases: {}, // Map of tabId -> custom alias string
-  migrationVersion: 1 // Current migration version (new installs get latest)
+  tabGrouping: {
+    isGrouped: false, // Whether tabs are currently grouped
+    bannerDismissed: false, // Whether the banner was dismissed
+    dismissedTooltipShown: false // Whether the dismissed tooltip was shown
+  },
+  migrationVersion: 2 // Current migration version (new installs get latest)
 };
 
 // Local cache to avoid unnecessary storage reads
@@ -38,6 +43,19 @@ const MIGRATIONS = [
         showOpenTabs: true
       },
       migrationVersion: 1
+    };
+  },
+  // Migration 2: Add tab grouping state
+  function migration2_addTabGrouping(state) {
+    console.log('[Migration 2] Adding tab grouping state');
+    return {
+      ...state,
+      tabGrouping: {
+        isGrouped: false,
+        bannerDismissed: false,
+        dismissedTooltipShown: false
+      },
+      migrationVersion: 2
     };
   }
 ];
@@ -309,6 +327,30 @@ const Storage = {
 
   getTabAlias(tabId) {
     return stateCache?.tabAliases?.[tabId] || null;
+  },
+
+  // Tab Grouping
+  async updateTabGrouping(updates) {
+    return this.updateState(state => ({
+      ...state,
+      tabGrouping: { ...state.tabGrouping, ...updates }
+    }));
+  },
+
+  async setTabsGrouped(isGrouped) {
+    return this.updateTabGrouping({ isGrouped });
+  },
+
+  async dismissGroupingBanner() {
+    return this.updateTabGrouping({ bannerDismissed: true });
+  },
+
+  async showGroupingBanner() {
+    return this.updateTabGrouping({ bannerDismissed: false });
+  },
+
+  async setDismissedTooltipShown(shown) {
+    return this.updateTabGrouping({ dismissedTooltipShown: shown });
   },
 
   // Migrations

@@ -81,6 +81,16 @@ function matchesUrl(tabUrl, targetUrl) {
 async function init() {
   state = await Storage.getState();
 
+  // Ensure tabGrouping exists (for backwards compatibility)
+  if (!state.tabGrouping) {
+    state.tabGrouping = {
+      isGrouped: false,
+      bannerDismissed: false,
+      dismissedTooltipShown: false
+    };
+    await Storage.setState(state);
+  }
+
   // Listen for storage updates from other contexts (always needed)
   window.addEventListener('storage-updated', (e) => {
     state = e.detail;
@@ -153,6 +163,19 @@ function renderFavorites() {
     tabStates.favorites // Pass tab states for indicators
   );
   favoritesGrid.render();
+
+  // Enable drag-and-drop for favorite reordering
+  enableFavoriteDragDrop(container, async (fromIndex, toIndex, fromData, toData) => {
+    console.log(`[DragDrop] Favorite reorder: ${fromIndex} → ${toIndex}`);
+
+    // Reorder favorites array
+    const newFavorites = reorderArray(state.favorites, fromIndex, toIndex);
+    state = await Storage.reorderFavorites(newFavorites);
+
+    // Re-render
+    await calculateTabStates();
+    renderFavorites();
+  });
 }
 
 // Render workspaces
@@ -830,6 +853,38 @@ function showSettings() {
       </div>
 
       <div class="settings-group">
+        <div class="settings-group-title">ORGANIZATION</div>
+        <div class="setting-item">
+          <div class="setting-description">
+            <label class="setting-label">📊 Group tabs by site</label>
+            <p style="font-size: 12px; color: var(--text-tertiary); margin: 4px 0 0 0;">
+              Organize similar tabs together
+            </p>
+          </div>
+          <div class="setting-control">
+            <button type="button" class="btn btn-secondary" id="group-tabs-btn" style="font-size: 13px; padding: 6px 12px;">
+              Group Now
+            </button>
+          </div>
+        </div>
+        ${state.tabGrouping?.bannerDismissed ? `
+        <div class="setting-item">
+          <div class="setting-description">
+            <label class="setting-label">🔔 Show grouping hints</label>
+            <p style="font-size: 12px; color: var(--text-tertiary); margin: 4px 0 0 0;">
+              Re-enable banner suggestions
+            </p>
+          </div>
+          <div class="setting-control">
+            <button type="button" class="btn btn-secondary" id="show-hints-btn" style="font-size: 13px; padding: 6px 12px;">
+              Enable
+            </button>
+          </div>
+        </div>
+        ` : ''}
+      </div>
+
+      <div class="settings-group">
         <div class="settings-group-title">DATA</div>
         <div class="setting-item">
           <div class="setting-description">
@@ -853,6 +908,21 @@ function showSettings() {
   `);
 
   document.getElementById('cancel-settings').addEventListener('click', hideModal);
+
+  // Group tabs button
+  document.getElementById('group-tabs-btn')?.addEventListener('click', async () => {
+    await handleGroupTabs();
+    hideModal();
+  });
+
+  // Show hints button (only exists if banner was dismissed)
+  document.getElementById('show-hints-btn')?.addEventListener('click', async () => {
+    state = await Storage.showGroupingBanner();
+    hideModal();
+    if (state.preferences.showOpenTabs) {
+      await loadOpenTabs();
+    }
+  });
 
   document.getElementById('import-bookmarks-btn').addEventListener('click', async () => {
     // Show confirmation
@@ -969,19 +1039,111 @@ function handleImport() {
 async function loadOpenTabs() {
   const tabs = await chrome.tabs.query({ currentWindow: true });
   const container = document.getElementById('open-tabs-list');
+  const headerContainer = document.querySelector('#open-tabs-section .section-header');
 
   if (tabs.length === 0) {
     container.innerHTML = '<div class="empty-state">No open tabs</div>';
     return;
   }
 
-  container.innerHTML = tabs.map(tab => {
-    const alias = state.tabAliases?.[tab.id] || null;
-    const displayTitle = alias || tab.title;
-    const isActive = tab.active;
+  // Check if tabs are grouped
+  const groupingState = state.tabGrouping || { isGrouped: false, bannerDismissed: false };
+  console.log('[loadOpenTabs] Grouping state:', groupingState);
 
-    return `
-      <div class="tab-item ${isActive ? 'active' : ''}" data-tab-id="${tab.id}">
+  // Clear container
+  container.innerHTML = '';
+
+  if (groupingState.isGrouped) {
+    console.log('[loadOpenTabs] Rendering grouped view...');
+    // Render grouped view
+    const groupedData = groupTabsByDomain(tabs);
+    console.log('[loadOpenTabs] Grouped data:', groupedData);
+
+    // Replace "Clear all" button with "Ungroup" button
+    const existingClearBtn = document.getElementById('clear-all-tabs-btn');
+    if (existingClearBtn) {
+      const ungroupBtn = createUngroupButton(handleUngroupTabs);
+      existingClearBtn.replaceWith(ungroupBtn);
+      ungroupBtn.id = 'ungroup-tabs-btn';
+    }
+
+    // Render grouped tabs
+    const groupedUI = renderGroupedTabs(groupedData, {
+      onTabClick: (tabId) => chrome.tabs.update(tabId, { active: true }),
+      onGroupToggle: (domain, collapsed) => {
+        // State is managed in UI only for now
+      },
+      onGroupClose: (tabs) => {
+        const tabIds = tabs.map(t => t.id);
+        chrome.tabs.remove(tabIds);
+      },
+      onTabNav: async (action, tabId) => {
+        try {
+          if (action === 'back') {
+            await chrome.tabs.goBack(tabId);
+          } else if (action === 'forward') {
+            await chrome.tabs.goForward(tabId);
+          } else if (action === 'close') {
+            await chrome.tabs.remove(tabId);
+          }
+        } catch (err) {
+          console.error(`[TabNav] Error performing ${action}:`, err);
+        }
+      },
+      onTabRename: handleRenameTab
+    }, state.tabAliases);
+
+    container.appendChild(groupedUI);
+  } else {
+    // Render ungrouped view
+
+    // Check if grouping banner should be shown
+    const bannerCheck = shouldShowGroupingBanner(tabs, groupingState);
+
+    // Render banner or small button
+    if (bannerCheck.shouldShow) {
+      const banner = createGroupingBanner(
+        bannerCheck.stats,
+        handleGroupTabs,
+        handleDismissBanner
+      );
+      container.appendChild(banner);
+    } else if (groupingState.bannerDismissed && bannerCheck.stats) {
+      // Show small button if banner was dismissed but conditions still met
+      const { shouldShow: eligibleForGrouping } = shouldShowGroupingBanner(tabs, {
+        isGrouped: false,
+        bannerDismissed: false
+      });
+
+      if (eligibleForGrouping) {
+        const smallBtn = createSmallGroupButton(tabs.length, handleGroupTabs);
+        container.appendChild(smallBtn);
+      }
+    }
+
+    // Ensure "Clear all" button is present (not "Ungroup")
+    const existingUngroupBtn = document.getElementById('ungroup-tabs-btn');
+    if (existingUngroupBtn) {
+      const clearBtn = document.createElement('button');
+      clearBtn.id = 'clear-all-tabs-btn';
+      clearBtn.className = 'clear-all-btn';
+      clearBtn.title = 'Close all tabs (except pinned and active)';
+      clearBtn.textContent = 'Clear all';
+      clearBtn.addEventListener('click', handleClearAllTabs);
+      existingUngroupBtn.replaceWith(clearBtn);
+    }
+
+    // Render ungrouped tabs
+    tabs.forEach(tab => {
+      const alias = state.tabAliases?.[tab.id] || null;
+      const displayTitle = alias || tab.title;
+      const isActive = tab.active;
+
+      const tabEl = document.createElement('div');
+      tabEl.className = `tab-item ${isActive ? 'active' : ''}`;
+      tabEl.dataset.tabId = tab.id;
+
+      tabEl.innerHTML = `
         <div class="tab-item-icon">${createFaviconElement(tab.url, 18).outerHTML}</div>
         <div class="tab-item-title" title="${escapeHtml(tab.title)}">${escapeHtml(displayTitle)}</div>
         <div class="tab-item-actions">
@@ -1004,48 +1166,129 @@ async function loadOpenTabs() {
             </button>
           </div>
         </div>
-      </div>
-    `;
-  }).join('');
+      `;
 
-  // Click to activate tab
-  container.querySelectorAll('.tab-item').forEach(el => {
-    el.addEventListener('click', (e) => {
-      // Don't activate if clicking navigation buttons
-      if (e.target.closest('.tab-nav-controls')) return;
+      // Click to activate tab
+      tabEl.addEventListener('click', (e) => {
+        if (e.target.closest('.tab-nav-controls')) return;
+        const tabId = parseInt(tabEl.dataset.tabId);
+        chrome.tabs.update(tabId, { active: true });
+      });
 
-      const tabId = parseInt(el.dataset.tabId);
-      chrome.tabs.update(tabId, { active: true });
+      // Right-click to rename
+      tabEl.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        const tabId = parseInt(tabEl.dataset.tabId);
+        handleRenameTab(tabId);
+      });
+
+      // Tab navigation buttons
+      tabEl.querySelectorAll('.tab-nav-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const action = btn.dataset.action;
+          const tabId = parseInt(btn.dataset.tabId);
+
+          try {
+            if (action === 'back') {
+              await chrome.tabs.goBack(tabId);
+            } else if (action === 'forward') {
+              await chrome.tabs.goForward(tabId);
+            } else if (action === 'close') {
+              await chrome.tabs.remove(tabId);
+            }
+          } catch (err) {
+            console.error(`[TabNav] Error performing ${action}:`, err);
+          }
+        });
+      });
+
+      container.appendChild(tabEl);
     });
 
-    // Right-click to rename
-    el.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      const tabId = parseInt(el.dataset.tabId);
-      handleRenameTab(tabId);
-    });
-  });
-
-  // Tab navigation button handlers
-  container.querySelectorAll('.tab-nav-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const action = btn.dataset.action;
-      const tabId = parseInt(btn.dataset.tabId);
-
+    // Enable drag-and-drop for tab reordering
+    enableTabDragDrop(container, async (fromIndex, toIndex, fromData, toData) => {
       try {
-        if (action === 'back') {
-          await chrome.tabs.goBack(tabId);
-        } else if (action === 'forward') {
-          await chrome.tabs.goForward(tabId);
-        } else if (action === 'close') {
-          await chrome.tabs.remove(tabId);
+        const tabsInWindow = await chrome.tabs.query({ currentWindow: true });
+        const orderedTabs = [...tabsInWindow].sort((a, b) => a.index - b.index);
+
+        const tabToMove = orderedTabs.find(tab => tab.id === fromData?.tabId) || orderedTabs[fromIndex];
+        if (!tabToMove) return;
+
+        const pinnedCount = orderedTabs.filter(t => t.pinned).length;
+        const maxIndex = Math.max(0, orderedTabs.length - 1);
+        let targetIndex = Math.max(0, Math.min(toIndex, maxIndex));
+
+        // Keep pinned/unpinned tabs inside their respective sections
+        if (tabToMove.pinned) {
+          targetIndex = Math.min(targetIndex, Math.max(pinnedCount - 1, 0));
+        } else {
+          targetIndex = Math.max(targetIndex, pinnedCount);
         }
-      } catch (err) {
-        console.error(`[TabNav] Error performing ${action}:`, err);
+
+        await chrome.tabs.move(tabToMove.id, { index: targetIndex });
+        await loadOpenTabs(); // Refresh to show new order
+      } catch (error) {
+        console.error('[DragDrop] Failed to reorder tabs:', error);
       }
     });
-  });
+  }
+
+  // Enable drag-drop for grouped tabs if in grouped mode
+  if (groupingState.isGrouped) {
+    const groupContainer = container.querySelector('.grouped-tabs-container');
+    if (groupContainer) {
+      enableGroupDragDrop(groupContainer, (fromIndex, toIndex, fromData, toData) => {
+        console.log(`[DragDrop] Group reorder: ${fromIndex} → ${toIndex}`);
+        // Groups are UI-only for now, refresh to maintain state
+        loadOpenTabs();
+      });
+    }
+  }
+}
+
+// Tab grouping handlers
+async function handleGroupTabs() {
+  try {
+    console.log('[Grouping] Starting tab grouping...');
+    state = await Storage.setTabsGrouped(true);
+    console.log('[Grouping] State updated, isGrouped:', state.tabGrouping?.isGrouped);
+    await loadOpenTabs();
+    console.log('[Grouping] Tabs reloaded');
+  } catch (error) {
+    console.error('[Grouping] Error:', error);
+    alert('Failed to group tabs: ' + error.message);
+  }
+}
+
+async function handleUngroupTabs() {
+  try {
+    console.log('[Grouping] Ungrouping tabs...');
+    state = await Storage.setTabsGrouped(false);
+    await loadOpenTabs();
+  } catch (error) {
+    console.error('[Grouping] Error ungrouping:', error);
+  }
+}
+
+async function handleDismissBanner() {
+  try {
+    console.log('[Grouping] Dismissing banner...');
+    state = await Storage.dismissGroupingBanner();
+
+    // Show dismissed tooltip
+    const container = document.getElementById('open-tabs-list');
+    const tooltip = createDismissedTooltip(async () => {
+      state = await Storage.setDismissedTooltipShown(true);
+    });
+
+    // Insert tooltip at the beginning
+    container.insertBefore(tooltip, container.firstChild);
+
+    await loadOpenTabs();
+  } catch (error) {
+    console.error('[Grouping] Error dismissing banner:', error);
+  }
 }
 
 // Rename Tab

@@ -257,6 +257,57 @@ class WorkspacesList {
       itemsContainer.appendChild(itemEl);
     });
 
+    // Enable drag-drop for workspace items (only when not editing)
+    if (!isEditing && typeof enableWorkspaceItemDragDrop === 'function') {
+      enableWorkspaceItemDragDrop(itemsContainer, workspace.id, async (fromIndex, toIndex, fromData, toData) => {
+        console.log(`[DragDrop] Workspace item reorder in ${workspace.id}: ${fromIndex} → ${toIndex}`);
+
+        const sourceWorkspaceId = fromData.workspaceId;
+        const targetWorkspaceId = toData?.workspaceId || sourceWorkspaceId;
+
+        const currentState = await Storage.getState();
+        const sourceWorkspace = currentState.workspaces[sourceWorkspaceId];
+        const targetWorkspace = currentState.workspaces[targetWorkspaceId];
+
+        if (!sourceWorkspace || !targetWorkspace) return;
+
+        // Find the dragged item
+        const item = sourceWorkspace.items.find(i => i.id === fromData.itemId);
+        if (!item) return;
+
+        if (sourceWorkspaceId === targetWorkspaceId) {
+          // Reorder within the same workspace
+          const newItems = reorderArray(sourceWorkspace.items, fromIndex, toIndex);
+          await Storage.updateWorkspace(sourceWorkspaceId, { items: newItems });
+        } else {
+          // Move to a different workspace at the target position
+          const updatedSourceItems = sourceWorkspace.items.filter(i => i.id !== fromData.itemId);
+          const destinationItems = [...targetWorkspace.items];
+          const insertionIndex = Math.min(toIndex, destinationItems.length);
+          destinationItems.splice(insertionIndex, 0, item);
+
+          await Storage.updateState(state => ({
+            ...state,
+            workspaces: {
+              ...state.workspaces,
+              [sourceWorkspaceId]: {
+                ...state.workspaces[sourceWorkspaceId],
+                items: updatedSourceItems
+              },
+              [targetWorkspaceId]: {
+                ...state.workspaces[targetWorkspaceId],
+                items: destinationItems
+              }
+            }
+          }));
+        }
+
+        // Refresh state and re-render
+        const state = await Storage.getState();
+        window.dispatchEvent(new CustomEvent('storage-updated', { detail: state }));
+      });
+    }
+
     // Add item button or Done editing button
     if (isEditing) {
       const doneBtn = document.createElement('button');
