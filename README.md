@@ -62,6 +62,37 @@
 * `Cmd/Ctrl+K` to filter across favorites, workspaces, and open tabs.
 * Lightning fast context switching.
 
+### 📸 Screenshot Capture
+
+* Click the camera icon to capture any region of the page.
+* Drag to select, then copy to clipboard or download as PNG.
+* Perfect for bug reports, design reviews, and quick shares.
+
+### 🗂️ Smart Tab Grouping
+
+* One-click grouping of open tabs by domain.
+* Collapse/expand groups to reduce visual clutter.
+* Close entire groups at once when you're done with a context.
+
+### 📥 One-Click Onboarding
+
+* **Quick Setup** analyzes your browsing history and bookmarks locally.
+* Auto-creates favorites from your most-visited sites.
+* Imports bookmark folders as ready-to-use workspaces.
+* Optional Google Workspace bundle (Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet, Chat).
+
+### 🔄 Navigation Controls
+
+* Back, forward, and refresh buttons built into the sidebar header.
+* Control the active tab without leaving your workflow.
+
+### 📋 Open Tabs Management
+
+* See all open tabs in a scrollable list.
+* Click to switch, hover for back/forward/close controls.
+* Rename tabs with custom aliases for better recognition.
+* Drag to reorder tabs within your window.
+
 ---
 
 ## 👥 Who This Is For
@@ -77,12 +108,20 @@ Not for: casual browsers with <5 tabs, or those who prefer horizontal layouts.
 
 ## 🚀 Key Features
 
-1. **Smart Tab Switching** – focus existing tabs instead of duplicating.
-2. **Collapsible Workspaces** – organize tabs by project, client, or context.
-3. **Favorites Grid** – Arc-style favicon-only grid with dynamic rows.
-4. **Quick Search** – instantly find any tab or workspace.
-5. **Custom Preferences** – control match modes, behaviors, and layouts.
-6. **Keyboard-first UX** – shortcuts for panel toggle, search, and tab actions.
+| Feature | Description |
+|---------|-------------|
+| **Smart Tab Switching** | Focus existing tabs instead of duplicating. Tab binding persists across navigation. |
+| **Collapsible Workspaces** | Organize tabs by project, client, or context. Drag items between workspaces. |
+| **Favorites Grid** | Arc-style favicon-only 4-column grid with visual open/active indicators. |
+| **Quick Search** | `Cmd/Ctrl+K` to instantly find any tab, favorite, or workspace. |
+| **Screenshot Capture** | Select any region, copy to clipboard or download as PNG. |
+| **Tab Grouping** | One-click grouping by domain. Collapse, expand, or close entire groups. |
+| **Bookmark Import** | Convert existing bookmark folders into workspaces instantly. |
+| **One-Click Onboarding** | Quick Setup auto-populates favorites and workspaces from your history. |
+| **Drag & Drop** | Reorder favorites, workspace items, and open tabs with drag-and-drop. |
+| **Navigation Controls** | Back, forward, refresh buttons in the sidebar header. |
+| **Open Tabs List** | View, rename, reorder, and manage all open tabs from the sidebar. |
+| **Keyboard-first UX** | Shortcuts for panel toggle, search, and tab actions. |
 
 ---
 
@@ -124,14 +163,52 @@ cd arc-style-workspaces/side-panel
 
 ---
 
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl + Shift + V` | Toggle sidebar panel |
+| `Cmd/Ctrl + K` | Focus search (when panel is open) |
+| `↑` `↓` Arrow keys | Navigate search results |
+| `Enter` | Open selected search result |
+| `Escape` | Close search / Cancel screenshot |
+| `Shift + Click` | Force open new tab (bypass smart switching) |
+
+---
+
+## 🎬 User Flow
+
+### First Launch
+1. Open the sidebar → See the onboarding screen
+2. Choose **"Set up automatically"** → Extension analyzes your history locally
+3. Favorites grid populates with your top 20 most-visited sites
+4. Workspaces are created from your bookmark folders
+5. Optional: Google Workspace bundle adds Gmail, Calendar, Drive, etc.
+
+### Daily Usage
+1. **Click a favorite** → Jumps to existing tab or opens new
+2. **Expand a workspace** → See tabs organized by project
+3. **Press `Cmd/Ctrl+K`** → Search across everything instantly
+4. **Drag items** → Reorder favorites or move between workspaces
+5. **Click camera icon** → Capture screenshot of any page region
+
+### Organizing Your Workflow
+* **Add favorite:** Click `+` in the grid, or right-click any workspace item
+* **Create workspace:** Click "New Workspace" at bottom of sidebar
+* **Move items:** Drag between workspaces, or right-click → Move to
+* **Group tabs:** Settings → "Group tabs by site" when things get cluttered
+* **Import bookmarks:** Settings → "Import Bookmarks" to convert folders
+
+---
+
 ## 🤝 Contributing
 
 We're building this in the open. Help us improve:
 
-* Drag-and-drop reordering.
-* Match mode UI (exact, domain, prefix).
-* Toast notifications for tab actions.
-* Live tab list view.
+* Accessibility improvements (screen readers, keyboard navigation)
+* Performance optimization for 100+ tab users
+* Cross-browser testing (Edge, Brave, Opera, Vivaldi)
+* Localization / i18n support
 
 Fork, branch, PR — contributions welcome.
 
