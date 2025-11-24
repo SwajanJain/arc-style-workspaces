@@ -12,30 +12,31 @@ This guide explains what assets you need to create for the Chrome Web Store list
 
 #### What to Capture:
 
-**Screenshot 1: Overview with Favorites** (Most Important)
+**Screenshot 1: Overview with Favorites & Workspaces** (Most Important)
 - Show the side panel open with favorites grid at top
 - Have 8-12 favorites visible with recognizable icons (Gmail, Slack, GitHub, etc.)
 - Show 1-2 expanded workspaces below
 - Make sure the panel looks clean and organized
 
-**Screenshot 2: Smart Tab Switching Demo**
-- Show before/after of clicking a favorite
-- Could use a simple annotation showing "Click → Focuses existing tab"
-- Highlight the tab binding feature
+**Screenshot 2: One-Click Onboarding** (NEW - Shows ease of setup)
+- Show the onboarding modal with "Set up automatically" button
+- Or show the success screen with "X favorites and Y workspaces created"
+- Demonstrates zero-effort setup
 
-**Screenshot 3: Workspaces Organized**
-- Show multiple workspaces (Office, Personal, etc.)
-- One expanded, others collapsed
-- Shows the organizational power
+**Screenshot 3: Tab Grouping** (NEW - Key differentiator)
+- Show tabs grouped by domain (e.g., 4 GitHub tabs, 3 Google Docs tabs)
+- One group expanded, others collapsed
+- Shows how it tames tab chaos
 
-**Screenshot 4: Search Feature**
+**Screenshot 4: Screenshot Capture** (NEW - Unique feature)
+- Show the selection overlay on a webpage
+- Or show the toolbar with Copy/Download buttons
+- Demonstrates built-in utility
+
+**Screenshot 5: Search Feature**
 - Show the search bar active (Cmd+K)
-- Search results filtered
+- Search results showing matches from favorites, workspaces, AND open tabs
 - Demonstrates quick access
-
-**Screenshot 5: Preferences (Optional)**
-- Show the preferences panel
-- Highlights customization options
 
 #### How to Take Screenshots:
 
@@ -108,14 +109,14 @@ Primary: **English**
 Before submitting, verify:
 
 - [ ] At least 1 screenshot (1280x800 or 640x400)
-- [ ] Icons present (16px, 48px, 128px) ✅
-- [ ] Privacy policy created and accessible ✅
-- [ ] Manifest version is 1.0.0 ✅
-- [ ] No `<all_urls>` permission ✅
+- [x] Icons present (16px, 48px, 128px)
+- [x] Privacy policy created and accessible (PRIVACY.md)
+- [x] Manifest V3 configured
+- [x] All permissions justified in description (see template above)
 - [ ] Description is clear and accurate
-- [ ] All permissions are justified in description
-- [ ] No trademark violations in name/description
+- [ ] No trademark violations in name/description (we use "Arc-Inspired")
 - [ ] Tested extension works in latest Chrome
+- [ ] Tested all features: favorites, workspaces, search, screenshots, tab grouping, onboarding
 
 ---
 
@@ -123,64 +124,139 @@ Before submitting, verify:
 
 Use this template for the Chrome Web Store description:
 
+**Short Description (132 characters max):**
+```
+Arc-style vertical tabs & workspaces for Chrome. Smart switching, tab grouping, screenshots, and one-click setup from your history.
+```
+
+**Detailed Description:**
+
 ```markdown
-Bring Arc Browser's best feature to any Chromium browser — vertical tabs, workspaces, and smart tab switching.
+You have 47 tabs open. You can't find Slack. You just opened a 4th Gmail tab.
 
-🎯 THE PROBLEM
-Horizontal tabs are outdated for serious work:
-• 20+ tabs make it impossible to see what's open
-• Can't organize tabs by project or context
-• Clicking Gmail opens another tab instead of focusing existing one
-• Wasted time hunting for tabs
+Arc-Inspired Workspaces brings vertical tab management to Chrome, Brave, Edge, and AI browsers like Comet and Atlas.
 
-✨ THE SOLUTION
-Arc-Inspired Workspaces gives you:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-SMART TAB SWITCHING (Arc's Killer Feature)
-• Click favorites → focuses existing tab or creates new
-• Navigate anywhere → clicking again returns to same tab
-• No more duplicate tabs cluttering your browser
-• Keyboard shortcuts: Shift+Click (new tab), Cmd+Click (background)
+⚡ ONE-CLICK SETUP (NEW)
 
-WORKSPACES BY CONTEXT
-• Organize tabs into Work, Personal, Client projects
-• Collapse/expand for focus
-• Add aliases to rename tabs
+Click "Set up automatically" and we'll:
+• Analyze your browsing history (locally, nothing leaves your browser)
+• Auto-create favorites from your top 20 most-visited sites
+• Import your bookmark folders as ready-to-use workspaces
+• Optionally add a Google Workspace bundle (Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet, Chat)
 
-FAVORITES GRID
-• Pin daily tools (Gmail, Slack, GitHub, etc.)
-• Clean 4-column favicon grid
-• One-click access
+Your sidebar is personalized in 10 seconds.
 
-QUICK SEARCH
-• Cmd/Ctrl+K to search across everything
-• Instant tab switching
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-👥 WHO IT'S FOR
-• Arc fans wanting AI browsers (Comet, Atlas, Dia)
-• Product managers & knowledge workers
-• Developers & designers
-• Chrome/Brave users wanting better tab management
+🎯 SMART TAB SWITCHING (Arc's Killer Feature)
 
-🔒 PRIVACY
-• All data stored locally (no servers, no tracking)
-• Open source: github.com/SwajanJain/arc-style-workspaces
-• Full privacy policy available
+• Click Gmail → Opens Gmail
+• Click Gmail again → Focuses that same tab (doesn't open another)
+• Navigate to Settings → Click Gmail again → STILL goes to that tab
+
+One site = one tab. No more duplicates.
+
+• Shift+Click: Force new tab when you actually want one
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📁 WORKSPACES
+
+Organize tabs like an adult:
+• 💼 Work — The stuff your boss thinks you're doing
+• 🎨 Side Project — The stuff you're actually doing
+• 🏠 Personal — Everything else
+
+Click to switch context. Collapse what you're not using. Drag items between workspaces.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⭐ FAVORITES GRID
+
+Daily sites in a clean icon grid. Click once = open. Click again = focus. Visual indicators show what's already open.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🗂️ TAB GROUPING (NEW)
+
+Got 12 GitHub tabs and 8 Google Docs tabs? One click: grouped by site. Collapse groups you're not using. Close entire groups when done.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📸 SCREENSHOT CAPTURE (NEW)
+
+Click the camera icon. Drag to select any region. Copy to clipboard or download as PNG. Perfect for bug reports and design feedback.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 OPEN TABS LIST
+
+See every tab in the sidebar. Click to switch. Drag to reorder. Rename tabs with custom labels. Hover for back/forward/close controls.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔍 QUICK SEARCH
+
+Cmd/Ctrl+K → type "slack" → there it is. Searches favorites, workspaces, AND open tabs.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 NAVIGATION CONTROLS
+
+Back, forward, refresh buttons right in the sidebar header. Control the active tab without leaving your workflow.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ⌨️ KEYBOARD SHORTCUTS
-• Cmd/Ctrl+Shift+V: Toggle panel
-• Cmd/Ctrl+K: Quick search
-• Shift+Click: Force new tab
-• Alt+Click: Cycle through matches
+
+• Cmd/Ctrl + Shift + V: Toggle sidebar
+• Cmd/Ctrl + K: Quick search
+• Shift + Click: Force new tab
+• Arrow keys: Navigate search results
+• Escape: Close search / cancel screenshot
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👥 WHO IT'S FOR
+
+• Arc fans who want AI browsers (Comet, Atlas, Dia) but miss vertical tabs
+• Chrome/Brave/Edge users tired of horizontal tab chaos
+• Product managers, developers, designers juggling 30+ tabs daily
+• Anyone who's ever thought "where the hell is my Amplitude tab?"
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔒 PRIVACY
+
+• 100% local — no servers, no tracking, no analytics
+• History analysis stays on your device
+• Open source: github.com/SwajanJain/arc-style-workspaces
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+WHY WE NEED CERTAIN PERMISSIONS
+
+• tabs, activeTab: Core functionality — managing and switching tabs
+• storage: Save your favorites, workspaces, and preferences locally
+• sidePanel: Display the vertical sidebar
+• history, bookmarks: One-click setup imports from your data (locally)
+• scripting, host permissions: Screenshot capture requires page access
+• downloads, clipboardWrite: Save/copy screenshots
+• offscreen: Clipboard operations in background
+
+All processing happens locally. We never send data anywhere.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🚀 GET STARTED
-1. Install extension
-2. Click icon or press Cmd+Shift+V
-3. Add your daily sites to favorites
-4. Create workspaces for different contexts
-5. Enjoy Arc-style tab management!
 
-Questions? Issues? Visit our GitHub repo for support.
+1. Install
+2. Click "Set up automatically" (or start empty)
+3. Done — your favorites and workspaces are ready
+
+Questions? Visit our GitHub repo.
 ```
 
 ---
