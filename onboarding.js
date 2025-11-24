@@ -561,6 +561,26 @@ async function createGoogleWorkspace() {
 }
 
 /**
+ * Collapse all workspaces except "Google Workspace"
+ * Used after onboarding Quick Setup and bookmark imports.
+ */
+async function collapseNonGoogleWorkspaces() {
+  try {
+    const state = await Storage.getState();
+    const workspaces = state.workspaces || {};
+
+    for (const workspace of Object.values(workspaces)) {
+      const shouldBeCollapsed = workspace.name !== 'Google Workspace';
+      if (workspace.collapsed !== shouldBeCollapsed) {
+        await Storage.updateWorkspace(workspace.id, { collapsed: shouldBeCollapsed });
+      }
+    }
+  } catch (err) {
+    console.error('[Onboarding] Failed to collapse workspaces:', err);
+  }
+}
+
+/**
  * Check if this is first launch (no favorites, no workspaces)
  */
 function isFirstLaunch(state) {
@@ -654,6 +674,8 @@ function showOnboardingModal(onComplete) {
     const result = await quickImport();
 
     if (result.success) {
+      // After creating workspaces, keep only Google Workspace expanded
+      await collapseNonGoogleWorkspaces();
       hideModal();
       showSuccessModal(result.summary, shouldAddGoogleWorkspace);
       if (onComplete) onComplete();
@@ -677,6 +699,9 @@ function showOnboardingModal(onComplete) {
     // Create empty workspaces
     await Storage.addWorkspace('Work', '💼');
     await Storage.addWorkspace('Personal', '🏠');
+
+    // After creating workspaces, keep only Google Workspace expanded
+    await collapseNonGoogleWorkspaces();
 
     hideModal();
     if (onComplete) onComplete();
@@ -968,6 +993,9 @@ async function importAllBookmarks() {
         });
       }
     }
+
+    // After import, keep only Google Workspace expanded
+    await collapseNonGoogleWorkspaces();
 
     return {
       success: true,
