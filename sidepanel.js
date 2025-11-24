@@ -381,14 +381,71 @@ function updateFooterStats() {
   document.getElementById('footer-stats').textContent = `${favoritesCount} favorites • ${tabsCount} tabs`;
 }
 
+// Check if URL is an active video call (not a landing page)
+function isActiveVideoCall(url) {
+  if (!url) return false;
+
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname;
+    const pathname = urlObj.pathname;
+
+    // Google Meet: meet.google.com/xxx-xxxx-xxx (3-4-3 letter meeting code)
+    if (hostname === 'meet.google.com') {
+      return /^\/[a-z]{3}-[a-z]{4}-[a-z]{3}$/.test(pathname);
+    }
+
+    // Zoom: zoom.us/j/123456 or zoom.us/wc/123456
+    if (hostname === 'zoom.us' || hostname.endsWith('.zoom.us')) {
+      return /^\/(j|wc)\/\d+/.test(pathname);
+    }
+
+    // Microsoft Teams: teams.microsoft.com/l/meetup-join or teams.live.com
+    if (hostname === 'teams.microsoft.com') {
+      return pathname.includes('/l/meetup-join') || pathname.includes('/l/meet');
+    }
+    if (hostname === 'teams.live.com') {
+      return true; // Live meetings
+    }
+
+    // Webex: webex.com/meet/ or webex.com/join/
+    if (hostname.endsWith('webex.com')) {
+      return /^\/(meet|join)\//.test(pathname);
+    }
+
+    // Discord voice channels: discord.com/channels/ (when in voice)
+    if (hostname === 'discord.com') {
+      return pathname.startsWith('/channels/');
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+// Check if a tab should be protected from "Clear all"
+function isProtectedTab(tab) {
+  // Always protect pinned and active tabs
+  if (tab.pinned || tab.active) return true;
+
+  // Protect tabs playing audio (someone is talking)
+  if (tab.audible) return true;
+
+  // Protect active video call tabs
+  if (isActiveVideoCall(tab.url)) return true;
+
+  return false;
+}
+
 // Clear all tabs handler
 async function handleClearAllTabs() {
   try {
     // Get all tabs in current window
     const allTabs = await chrome.tabs.query({ currentWindow: true });
 
-    // Find tabs to close (not pinned AND not active)
-    const tabsToClose = allTabs.filter(tab => !tab.pinned && !tab.active);
+    // Find tabs to close (not protected)
+    const tabsToClose = allTabs.filter(tab => !isProtectedTab(tab));
 
     if (tabsToClose.length === 0) {
       return; // Nothing to close
