@@ -186,7 +186,121 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     sendResponse({ status: 'alive' });
     return;
   }
+
+  if (message.type === 'screenshot:capture') {
+    console.log('[Background] screenshot:capture received from tab:', sender.tab?.id);
+    (async () => {
+      try {
+        console.log('[Background] Capturing visible tab, windowId:', sender.tab?.windowId);
+        const dataUrl = await chrome.tabs.captureVisibleTab(sender.tab?.windowId || undefined, { format: 'png' });
+        console.log('[Background] Capture successful, dataUrl length:', dataUrl?.length);
+        sendResponse({ ok: true, dataUrl });
+      } catch (error) {
+        console.error('[Background] Capture failed:', error);
+        sendResponse({ ok: false, error: error?.message || 'Capture failed' });
+      }
+    })();
+    return true; // async
+  }
+
+  if (message.type === 'screenshot:save') {
+    console.log('[Background] screenshot:save received, action:', message.action);
+    (async () => {
+      try {
+        const { action, dataUrl } = message;
+        console.log('[Background] Processing save, dataUrl length:', dataUrl?.length);
+
+        if (action === 'download') {
+          // Use chrome.downloads API for reliable downloads
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          console.log('[Background] Starting download...');
+          const downloadId = await chrome.downloads.download({
+            url: dataUrl,
+            filename: `arc-workspaces-screenshot-${timestamp}.png`,
+            saveAs: false
+          });
+          console.log('[Background] Download started, id:', downloadId);
+          sendResponse({ ok: true });
+        } else if (action === 'copy') {
+          console.log('[Background] Starting clipboard copy...');
+          let primaryError = null;
+
+          // Prefer chrome.clipboard API (works without focused document)
+          try {
+            await copyImageDataUrl(dataUrl);
+            console.log('[Background] Clipboard copy successful via chrome.clipboard');
+            sendResponse({ ok: true, method: 'clipboard-api' });
+            return;
+          } catch (err) {
+            primaryError = err;
+            console.warn('[Background] chrome.clipboard copy failed, falling back to offscreen document:', err?.message);
+          }
+
+          // Fallback to offscreen document (older Chrome versions)
+          try {
+            await copyToClipboardViaOffscreen(dataUrl);
+            console.log('[Background] Clipboard copy successful via offscreen document');
+            sendResponse({ ok: true, method: 'offscreen' });
+          } catch (err) {
+            console.error('[Background] Clipboard copy failed:', err);
+            sendResponse({ ok: false, error: err?.message || primaryError?.message || 'Copy failed' });
+          }
+        } else {
+          sendResponse({ ok: false, error: 'Unknown action' });
+        }
+      } catch (error) {
+        console.error('[Background] save failed:', error);
+        sendResponse({ ok: false, error: error?.message || 'Save failed' });
+      }
+    })();
+    return true; // async
+  }
 });
+
+// Offscreen document management for clipboard operations
+let offscreenDocumentCreating = null;
+
+async function ensureOffscreenDocument() {
+  const existingContexts = await chrome.runtime.getContexts({
+    contextTypes: ['OFFSCREEN_DOCUMENT']
+  });
+
+  if (existingContexts.length > 0) {
+    return;
+  }
+
+  if (offscreenDocumentCreating) {
+    await offscreenDocumentCreating;
+    return;
+  }
+
+  offscreenDocumentCreating = chrome.offscreen.createDocument({
+    url: 'offscreen.html',
+    reasons: ['CLIPBOARD'],
+    justification: 'Copy screenshot to clipboard'
+  });
+
+  await offscreenDocumentCreating;
+  offscreenDocumentCreating = null;
+}
+
+async function copyToClipboardViaOffscreen(dataUrl) {
+  await ensureOffscreenDocument();
+
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ type: 'offscreen:copy', dataUrl }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      if (response?.ok) {
+        resolve();
+      } else {
+        reject(new Error(response?.error || 'Clipboard copy failed'));
+      }
+    });
+  });
+}
 
 // Installation handler
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -244,6 +358,30 @@ function stopKeepAlive() {
   if (keepAliveInterval) {
     clearInterval(keepAliveInterval);
     keepAliveInterval = null;
+  }
+}
+
+// Copy image data URL to clipboard using chrome.clipboard API
+async function copyImageDataUrl(dataUrl) {
+  if (!chrome?.clipboard?.setImageData) {
+    throw new Error('chrome.clipboard.setImageData unavailable');
+  }
+
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  const bitmap = await createImageBitmap(blob);
+
+  try {
+    const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0);
+    const imageData = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
+    await chrome.clipboard.setImageData(
+      imageData,
+      chrome.clipboard?.ImageType?.PNG || 'png'
+    );
+  } finally {
+    if (bitmap.close) bitmap.close();
   }
 }
 

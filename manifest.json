@@ -8,9 +8,18 @@
     "sidePanel",
     "storage",
     "tabs",
+    "activeTab",
+    "tabCapture",
+    "scripting",
+    "clipboardWrite",
     "favicon",
     "history",
-    "bookmarks"
+    "bookmarks",
+    "downloads",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js",

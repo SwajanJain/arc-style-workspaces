@@ -103,7 +103,7 @@ body {
 
 .header-nav {
   display: flex;
-  gap: 2px;
+  gap: var(--spacing-sm);
   flex-shrink: 0;
 }
 
@@ -139,6 +139,12 @@ body {
   margin: 0;
   flex: 1;
   text-align: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -1409,9 +1415,27 @@ body {
 }
 
 .onboarding-icon {
-  font-size: 64px;
+  font-size: 48px;
   margin-bottom: var(--spacing-lg);
   line-height: 1;
+}
+
+/* Success checkmark styling */
+.onboarding-success .onboarding-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 50%;
+}
+
+/* Green circle for success checkmark */
+.onboarding-success .onboarding-icon:has(+ .onboarding-title:first-of-type) {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
 }
 
 .onboarding-title {
@@ -1441,16 +1465,7 @@ body {
 .btn-large {
   padding: var(--spacing-md) var(--spacing-lg);
   font-size: 15px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.btn-subtitle {
-  font-size: 12px;
-  opacity: 0.8;
-  font-weight: normal;
+  width: 100%;
 }
 
 .onboarding-summary {
@@ -1543,7 +1558,96 @@ body {
   margin-top: var(--spacing-md);
   font-size: 11px;
   color: var(--text-muted);
+  text-align: center;
+}
+
+/* Progress Indicator */
+.onboarding-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: var(--spacing-lg);
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gray-600);
+  transition: all 0.2s ease;
+}
+
+.progress-dot.active {
+  background: var(--accent-color);
+  transform: scale(1.2);
+}
+
+.progress-dot.completed {
+  background: #22C55E;
+}
+
+/* Tips List (Screen 3) */
+.onboarding-tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
   text-align: left;
+}
+
+.onboarding-tip-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+}
+
+.tip-number {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tip-text {
+  flex: 1;
+}
+
+.tip-text strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.tip-text span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.tip-text kbd {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-medium);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+/* Kbd styling for onboarding benefits */
+.onboarding-benefit-text kbd {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-medium);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: inherit;
+  font-size: 11px;
 }
 
 .onboarding-tip {

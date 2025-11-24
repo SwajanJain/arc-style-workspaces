@@ -609,8 +609,11 @@ function showModal(title, content, onConfirm) {
   const overlay = document.getElementById('modal-overlay');
   const modalContent = document.getElementById('modal-content');
 
+  // Only render title if provided (onboarding screens use their own h2)
+  const titleHtml = title ? `<h3 class="modal-title">${title}</h3>` : '';
+
   modalContent.innerHTML = `
-    <h3 class="modal-title">${title}</h3>
+    ${titleHtml}
     ${content}
   `;
 

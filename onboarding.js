@@ -572,60 +572,65 @@ function isFirstLaunch(state) {
  * Show onboarding welcome modal
  */
 function showOnboardingModal(onComplete) {
-  showModal('Turn Tab Chaos into Workspaces', `
+  showModal('', `
     <div class="onboarding-welcome">
-      <div class="onboarding-icon">🧠</div>
-      <h2 class="onboarding-title">Set up your sidebar in seconds</h2>
+      <div class="onboarding-progress">
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+        <span class="progress-dot"></span>
+      </div>
+      <div class="onboarding-icon">🚀</div>
+      <h2 class="onboarding-title">Your most-used sites, always one click away</h2>
       <p class="onboarding-description">
-        We’ll turn the tools you already use into favorites and workspaces so you can stop hunting through tabs.
+        We'll analyze your recent browsing to create a personalized sidebar with your favorites and workspaces.
       </p>
 
       <div class="onboarding-benefits">
         <div class="onboarding-benefit">
           <div class="onboarding-benefit-icon">🎯</div>
           <div class="onboarding-benefit-text">
-            <strong>Smart open</strong>
-            <span>One click jumps to your existing tab instead of opening a duplicate.</span>
+            <strong>One click, right tab</strong>
+            <span>Click a favorite to jump to an existing tab instead of opening duplicates.</span>
           </div>
         </div>
         <div class="onboarding-benefit">
-          <div class="onboarding-benefit-icon">📂</div>
+          <div class="onboarding-benefit-icon">📁</div>
           <div class="onboarding-benefit-text">
-            <strong>Workspaces</strong>
-            <span>Group Work, Personal and projects into separate sections.</span>
+            <strong>Group by context</strong>
+            <span>Separate Work, Personal, and side projects into their own workspaces.</span>
           </div>
         </div>
         <div class="onboarding-benefit">
           <div class="onboarding-benefit-icon">⚡</div>
           <div class="onboarding-benefit-text">
-            <strong>Search</strong>
-            <span>Cmd/Ctrl+K to jump anywhere from the sidebar.</span>
+            <strong>Quick search</strong>
+            <span>Press <kbd>Cmd/Ctrl+K</kbd> to instantly find any tab, favorite, or workspace.</span>
           </div>
         </div>
+      </div>
+
+      <div class="onboarding-cta">
+        <button class="btn btn-primary btn-large" id="quick-import-btn">
+          Set up automatically
+        </button>
+
+        <button class="btn btn-secondary" id="skip-onboarding-btn">
+          Start empty
+        </button>
       </div>
 
       <div class="onboarding-toggle">
         <label class="onboarding-checkbox-row">
           <input type="checkbox" id="add-google-workspace-checkbox" checked />
           <div>
-            <div class="onboarding-checkbox-title">📦 Add Google Workspace workspace</div>
+            <div class="onboarding-checkbox-title">Include Google Workspace</div>
             <div class="onboarding-checkbox-subtitle">Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet, Chat</div>
           </div>
         </label>
       </div>
 
-      <div class="onboarding-cta">
-        <button class="btn btn-primary btn-large" id="quick-import-btn">
-          <span>🚀 Quick Setup (Recommended)</span>
-          <span class="btn-subtitle">Use your real history to auto-build workspaces</span>
-        </button>
-
-        <button class="btn btn-secondary" id="skip-onboarding-btn">
-          Start clean and build manually
-        </button>
-      </div>
       <p class="onboarding-footer-note">
-        Quick Setup runs locally in your browser. No browsing data is sent to any server.
+        All analysis happens locally. No data leaves your browser.
       </p>
     </div>
   `);
@@ -685,30 +690,56 @@ function showSuccessModal(summary, hasGoogleWorkspace = false) {
   // Calculate total workspaces (including Google Workspace if added)
   const totalWorkspaces = summary.workspaces.length + (hasGoogleWorkspace ? 1 : 0);
 
-  showModal('Quick Setup complete', `
+  // Handle empty or minimal import
+  const hasContent = summary.favorites > 0 || totalWorkspaces > 0;
+  const isMinimal = summary.favorites < 3 && totalWorkspaces <= 2;
+
+  let summaryText;
+  if (!hasContent) {
+    summaryText = `
+      <p>We couldn't find enough browsing history to auto-populate your sidebar.</p>
+      <p>No worries — you can add favorites and workspaces manually as you browse.</p>
+    `;
+  } else if (isMinimal) {
+    summaryText = `
+      <p>
+        We found <strong>${summary.favorites}</strong> ${summary.favorites === 1 ? 'favorite' : 'favorites'} and
+        created <strong>${totalWorkspaces}</strong> ${totalWorkspaces === 1 ? 'workspace' : 'workspaces'}.
+      </p>
+      <p>Add more favorites by right-clicking any site in your sidebar.</p>
+    `;
+  } else {
+    summaryText = `
+      <p>
+        <strong>${summary.favorites}</strong> favorites and
+        <strong>${totalWorkspaces}</strong> workspaces created from your browsing history${hasGoogleWorkspace ? ' and Google Workspace' : ''}.
+      </p>
+      <p>Everything is editable — right-click to rename, reorder, or remove items.</p>
+    `;
+  }
+
+  showModal('', `
     <div class="onboarding-success">
-      <div class="onboarding-icon">✅</div>
-      <h2 class="onboarding-title">Your sidebar is ready</h2>
+      <div class="onboarding-progress">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+        <span class="progress-dot"></span>
+      </div>
+      <div class="onboarding-icon">${hasContent ? '✓' : '📋'}</div>
+      <h2 class="onboarding-title">${hasContent ? 'Setup complete' : 'Ready to customize'}</h2>
 
       <div class="onboarding-summary">
-        <div style="display: flex; gap: 24px; justify-content: center; margin-bottom: 16px;">
-          <div style="text-align: center;">
-            <div style="font-size: 32px; font-weight: 700; color: var(--accent-color);">${summary.favorites}</div>
-            <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px;">favorites</div>
-          </div>
-          <div style="text-align: center;">
-            <div style="font-size: 32px; font-weight: 700; color: var(--accent-color);">${totalWorkspaces}</div>
-            <div style="font-size: 12px; color: var(--text-tertiary); margin-top: 4px;">workspaces</div>
-          </div>
-        </div>
-        <p style="color: var(--text-secondary); font-size: 13px; text-align: center; line-height: 1.5; margin: 0;">
-          Created from your recent activity${hasGoogleWorkspace ? ', plus a Google Workspace section' : ''}. You can edit or delete anything.
-        </p>
+        ${summaryText}
       </div>
 
-      <button class="btn btn-primary btn-large" id="next-tips-btn" style="margin-top: 20px;">
-        Next: Quick tips →
-      </button>
+      <div class="onboarding-cta">
+        <button class="btn btn-primary btn-large" id="next-tips-btn">
+          Quick tips
+        </button>
+        <button class="btn btn-secondary" id="skip-tips-btn">
+          Start browsing
+        </button>
+      </div>
     </div>
   `);
 
@@ -716,30 +747,55 @@ function showSuccessModal(summary, hasGoogleWorkspace = false) {
     hideModal();
     showTipsModal();
   });
+
+  document.getElementById('skip-tips-btn').addEventListener('click', () => {
+    hideModal();
+  });
 }
 
 /**
  * Show tips modal (Screen 3 - How to use + customize)
  */
 function showTipsModal() {
-  showModal('Quick tips', `
+  showModal('', `
     <div class="onboarding-success">
-      <div class="onboarding-tip">
-        <div class="tip-icon">📌</div>
-        <div class="tip-content">
-          <strong>Keep the panel handy</strong>
-          <ul class="sites-list" style="margin-top: 8px;">
-            <li>Pin this extension in your browser toolbar so you can open the sidebar with one click.</li>
-            <li>On Mac, for a more immersive view, uncheck "Always Show Toolbar in Full Screen" in your browser.</li>
-            <li>Right‑click a workspace to rename it or edit its tabs.</li>
-            <li>Use Settings → Bookmarks to import all your bookmark folders as workspaces.</li>
-          </ul>
+      <div class="onboarding-progress">
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot completed"></span>
+        <span class="progress-dot active"></span>
+      </div>
+      <div class="onboarding-icon">💡</div>
+      <h2 class="onboarding-title">Three things to know</h2>
+
+      <div class="onboarding-tips-list">
+        <div class="onboarding-tip-item">
+          <span class="tip-number">1</span>
+          <div class="tip-text">
+            <strong>Search with <kbd>Cmd/Ctrl+K</kbd></strong>
+            <span>Find any tab, favorite, or workspace instantly.</span>
+          </div>
+        </div>
+        <div class="onboarding-tip-item">
+          <span class="tip-number">2</span>
+          <div class="tip-text">
+            <strong>Right-click to customize</strong>
+            <span>Rename, move, or delete any favorite or workspace item.</span>
+          </div>
+        </div>
+        <div class="onboarding-tip-item">
+          <span class="tip-number">3</span>
+          <div class="tip-text">
+            <strong>Import more from bookmarks</strong>
+            <span>Open Settings (gear icon) and click Import Bookmarks.</span>
+          </div>
         </div>
       </div>
 
-      <button class="btn btn-primary btn-large" id="start-using-btn" style="margin-top: 24px;">
-        Got It — Let's Go! →
-      </button>
+      <div class="onboarding-cta">
+        <button class="btn btn-primary btn-large" id="start-using-btn">
+          Done
+        </button>
+      </div>
     </div>
   `);
 

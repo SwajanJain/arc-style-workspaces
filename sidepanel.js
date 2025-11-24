@@ -233,6 +233,8 @@ function attachEventListeners() {
 
   // Settings
   document.getElementById('settings-btn').addEventListener('click', showSettings);
+  // Screenshot
+  document.getElementById('screenshot-btn').addEventListener('click', handleScreenshot);
 
   // Add workspace buttons
   document.getElementById('add-workspace-btn').addEventListener('click', handleAddWorkspace);
@@ -247,6 +249,7 @@ function attachEventListeners() {
   // Navigation buttons
   document.getElementById('nav-back-btn').addEventListener('click', handleNavBack);
   document.getElementById('nav-forward-btn').addEventListener('click', handleNavForward);
+  document.getElementById('nav-refresh-btn').addEventListener('click', handleNavRefresh);
 
   // Update navigation buttons when tabs change
   chrome.tabs.onActivated.addListener(updateNavigationButtons);
@@ -293,6 +296,18 @@ async function handleNavForward() {
   }
 }
 
+// Handle navigation refresh
+async function handleNavRefresh() {
+  try {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (activeTab?.id) {
+      await chrome.tabs.reload(activeTab.id);
+    }
+  } catch (err) {
+    console.error('[Nav] Error refreshing tab:', err);
+  }
+}
+
 // Update navigation buttons based on active tab
 async function updateNavigationButtons() {
   try {
@@ -314,6 +329,48 @@ async function updateNavigationButtons() {
     forwardBtn.disabled = false;
   } catch (err) {
     console.error('[Nav] Error updating navigation buttons:', err);
+  }
+}
+
+// Handle screenshot capture (visible area)
+async function handleScreenshot() {
+  try {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!activeTab?.id) {
+      alert('No active tab to capture.');
+      return;
+    }
+
+    // Block restricted pages up front to avoid noisy errors
+    const tabUrl = activeTab.url || '';
+    if (
+      tabUrl.startsWith('chrome://') ||
+      tabUrl.startsWith('edge://') ||
+      tabUrl.startsWith('chrome-extension://')
+    ) {
+      alert('Screenshot is not available on this page (browser-restricted).');
+      return;
+    }
+
+    // If overlay is already active, toggle it off instead of stacking
+    try {
+      const cancelResponse = await chrome.tabs.sendMessage(activeTab.id, { type: 'screenshot:cancel-overlay' });
+      // Always proceed to start a fresh overlay; cancelResponse indicates previous overlay was cleared
+    } catch (e) {
+      // Ignore sendMessage failure (likely no overlay yet)
+    }
+
+    await chrome.scripting.executeScript({
+      target: { tabId: activeTab.id },
+      files: ['screenshot-overlay.js']
+    });
+  } catch (err) {
+    console.error('[Screenshot] Failed to start screenshot overlay:', err);
+    if (err?.message?.includes('Cannot access contents')) {
+      alert('Screenshot needs permission for this site. Please reload the extension after granting permissions.');
+    } else {
+      alert('Screenshot not available on this page.');
+    }
   }
 }
 
