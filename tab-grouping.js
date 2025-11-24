@@ -42,13 +42,13 @@ function shouldShowGroupingBanner(tabs, groupingState) {
     }
   });
 
-  // Count domains with 2+ tabs
+  // Find domains with 2+ tabs
   const domainsWithMultipleTabs = Object.values(domainGroups).filter(
     group => group.length >= 2
   );
 
-  // Check: Must have at least 2 domains with 2+ tabs each
-  if (domainsWithMultipleTabs.length < 2) {
+  // Check: Must have at least 1 domain with 2+ tabs
+  if (domainsWithMultipleTabs.length < 1) {
     return { shouldShow: false, stats: null };
   }
 
@@ -91,12 +91,12 @@ function groupTabsByDomain(tabs) {
     }
   });
 
-  // Separate groups (3+ tabs) from singles (1-2 tabs)
+  // Separate groups (2+ tabs) from singles (1 tab)
   const groups = [];
   const singles = [];
 
   Object.values(domainGroups).forEach(group => {
-    if (group.tabs.length >= 3) {
+    if (group.tabs.length >= 2) {
       groups.push(group);
     } else {
       singles.push(...group.tabs);
