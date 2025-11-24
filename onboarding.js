@@ -782,50 +782,64 @@ function showSuccessModal(summary, hasGoogleWorkspace = false) {
  * Show tips modal (Screen 3 - How to use + customize)
  */
 function showTipsModal() {
-  showModal('', `
-    <div class="onboarding-success">
-      <div class="onboarding-progress">
-        <span class="progress-dot completed"></span>
-        <span class="progress-dot completed"></span>
-        <span class="progress-dot active"></span>
-      </div>
-      <div class="onboarding-icon">💡</div>
-      <h2 class="onboarding-title">Three things to know</h2>
-
-      <div class="onboarding-tips-list">
-        <div class="onboarding-tip-item">
-          <span class="tip-number">1</span>
-          <div class="tip-text">
-            <strong>Search with <kbd>Cmd/Ctrl+K</kbd></strong>
-            <span>Find any tab, favorite, or workspace instantly.</span>
-          </div>
-        </div>
-        <div class="onboarding-tip-item">
-          <span class="tip-number">2</span>
-          <div class="tip-text">
-            <strong>Right-click to customize</strong>
-            <span>Rename, move, or delete any favorite or workspace item.</span>
-          </div>
-        </div>
-        <div class="onboarding-tip-item">
-          <span class="tip-number">3</span>
-          <div class="tip-text">
-            <strong>Import more from bookmarks</strong>
-            <span>Open Settings (gear icon) and click Import Bookmarks.</span>
-          </div>
+  chrome.runtime.getPlatformInfo((info) => {
+    const isMac = info?.os === 'mac';
+    const macTip = isMac ? `
+      <div class="onboarding-tip-item">
+        <span class="tip-number">4</span>
+        <div class="tip-text">
+          <strong>Mac: go full Arc-style</strong>
+          <span>Menu bar → View → turn off "Always Show Toolbar in Full Screen" for a cleaner vertical-tabs view.</span>
         </div>
       </div>
+    ` : '';
 
-      <div class="onboarding-cta">
-        <button class="btn btn-primary btn-large" id="start-using-btn">
-          Done
-        </button>
+    showModal('', `
+      <div class="onboarding-success">
+        <div class="onboarding-progress">
+          <span class="progress-dot completed"></span>
+          <span class="progress-dot completed"></span>
+          <span class="progress-dot active"></span>
+        </div>
+        <div class="onboarding-icon">💡</div>
+        <h2 class="onboarding-title">Three things to know</h2>
+
+        <div class="onboarding-tips-list">
+          <div class="onboarding-tip-item">
+            <span class="tip-number">1</span>
+            <div class="tip-text">
+              <strong>Shift+Click for a fresh tab</strong>
+              <span>Need a second copy? Hold Shift and click a favorite or workspace item to open a new tab.</span>
+            </div>
+          </div>
+          <div class="onboarding-tip-item">
+            <span class="tip-number">2</span>
+            <div class="tip-text">
+              <strong>Right-click to customize</strong>
+              <span>Rename, move, or delete any favorite or workspace item.</span>
+            </div>
+          </div>
+          <div class="onboarding-tip-item">
+            <span class="tip-number">3</span>
+            <div class="tip-text">
+              <strong>Import more from bookmarks</strong>
+              <span>Open Settings (gear icon) and click Import Bookmarks.</span>
+            </div>
+          </div>
+          ${macTip}
+        </div>
+
+        <div class="onboarding-cta">
+          <button class="btn btn-primary btn-large" id="start-using-btn">
+            Done
+          </button>
+        </div>
       </div>
-    </div>
-  `);
+    `);
 
-  document.getElementById('start-using-btn').addEventListener('click', () => {
-    hideModal();
+    document.getElementById('start-using-btn').addEventListener('click', () => {
+      hideModal();
+    });
   });
 }
 
