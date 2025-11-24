@@ -375,10 +375,22 @@ async function handleScreenshot() {
 }
 
 // Update footer stats
-function updateFooterStats() {
+async function updateFooterStats() {
   const favoritesCount = state.favorites.length;
-  const tabsCount = Object.values(state.workspaces).reduce((sum, ws) => sum + ws.items.length, 0);
-  document.getElementById('footer-stats').textContent = `${favoritesCount} favorites • ${tabsCount} tabs`;
+  const savedCount = Object.values(state.workspaces).reduce((sum, ws) => sum + ws.items.length, 0);
+
+  // Get actual open tabs count
+  let openTabsCount = 0;
+  try {
+    const tabs = await chrome.tabs.query({ currentWindow: true });
+    openTabsCount = tabs.length;
+  } catch (err) {
+    // Fallback if tabs API fails
+    openTabsCount = 0;
+  }
+
+  document.getElementById('footer-stats').textContent =
+    `${favoritesCount} favorites • ${savedCount} saved • ${openTabsCount} open`;
 }
 
 // Check if URL is an active video call (not a landing page)
