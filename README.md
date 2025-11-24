@@ -39,12 +39,6 @@
 * Navigate around in Gmail → Clicking Gmail again brings you *back to that bound tab*.
 * No more 5 Slack tabs or duplicate dashboards.
 
-**Power options:**
-
-* Shift+Click = Force new tab.
-* Cmd+Click = Open in background.
-* Alt+Click = Cycle through multiple matches.
-
 ### 📁 Workspaces by Context
 
 * Separate **Work, Design, Client, Personal** flows.
