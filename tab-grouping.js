@@ -261,18 +261,16 @@ function renderGroupedTabs(groupedData, callbacks, tabAliases = {}) {
 
     groupEl.appendChild(header);
 
-    // Group content (tabs)
-    if (!group.collapsed) {
-      const content = document.createElement('div');
-      content.className = 'tab-group-content';
+    // Group content (tabs) - always render, CSS handles visibility
+    const content = document.createElement('div');
+    content.className = 'tab-group-content';
 
-      group.tabs.forEach(tab => {
-        const tabEl = createTabElement(tab, callbacks, tabAliases);
-        content.appendChild(tabEl);
-      });
+    group.tabs.forEach(tab => {
+      const tabEl = createTabElement(tab, callbacks, tabAliases);
+      content.appendChild(tabEl);
+    });
 
-      groupEl.appendChild(content);
-    }
+    groupEl.appendChild(content);
 
     container.appendChild(groupEl);
   });

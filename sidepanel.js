@@ -243,6 +243,9 @@ function attachEventListeners() {
   // Clear all tabs button
   document.getElementById('clear-all-tabs-btn').addEventListener('click', handleClearAllTabs);
 
+  // Ungroup tabs button
+  document.getElementById('ungroup-tabs-btn').addEventListener('click', handleUngroupTabs);
+
   // New tab button
   document.getElementById('new-tab-btn').addEventListener('click', handleNewTab);
 
@@ -466,6 +469,11 @@ async function handleClearAllTabs() {
     // Close them
     const tabIds = tabsToClose.map(t => t.id);
     await chrome.tabs.remove(tabIds);
+
+    // Auto-ungroup after clearing (grouping makes no sense with few tabs)
+    if (state.tabGrouping?.isGrouped) {
+      state = await Storage.setTabsGrouped(false);
+    }
 
     // Refresh open tabs list
     if (state.preferences.showOpenTabs) {
@@ -1185,12 +1193,10 @@ async function loadOpenTabs() {
     const groupedData = groupTabsByDomain(tabs);
     console.log('[loadOpenTabs] Grouped data:', groupedData);
 
-    // Replace "Clear all" button with "Ungroup" button
-    const existingClearBtn = document.getElementById('clear-all-tabs-btn');
-    if (existingClearBtn) {
-      const ungroupBtn = createUngroupButton(handleUngroupTabs);
-      existingClearBtn.replaceWith(ungroupBtn);
-      ungroupBtn.id = 'ungroup-tabs-btn';
+    // Show Ungroup row
+    const ungroupRow = document.getElementById('ungroup-row');
+    if (ungroupRow) {
+      ungroupRow.style.display = 'flex';
     }
 
     // Render grouped tabs
@@ -1247,16 +1253,10 @@ async function loadOpenTabs() {
       }
     }
 
-    // Ensure "Clear all" button is present (not "Ungroup")
-    const existingUngroupBtn = document.getElementById('ungroup-tabs-btn');
-    if (existingUngroupBtn) {
-      const clearBtn = document.createElement('button');
-      clearBtn.id = 'clear-all-tabs-btn';
-      clearBtn.className = 'clear-all-btn';
-      clearBtn.title = 'Close all tabs (except pinned and active)';
-      clearBtn.textContent = 'Clear all';
-      clearBtn.addEventListener('click', handleClearAllTabs);
-      existingUngroupBtn.replaceWith(clearBtn);
+    // Hide Ungroup row
+    const ungroupRow = document.getElementById('ungroup-row');
+    if (ungroupRow) {
+      ungroupRow.style.display = 'none';
     }
 
     // Render ungrouped tabs

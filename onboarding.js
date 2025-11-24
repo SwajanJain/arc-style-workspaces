@@ -544,7 +544,7 @@ async function createGoogleWorkspace() {
 
   const googleServices = [
     { url: 'https://mail.google.com/mail', alias: 'Gmail', icon: 'https://www.google.com/gmail/about/static-2.0/images/logo-gmail.png' },
-    { url: 'https://calendar.google.com/calendar', alias: 'Calendar', icon: 'https://calendar.google.com/googlecalendar/images/favicons_2020q4/calendar_2020q4.ico' },
+    { url: 'https://calendar.google.com/calendar', alias: 'Calendar', icon: 'https://www.gstatic.com/images/branding/product/1x/calendar_2020q4_48dp.png' },
     { url: 'https://drive.google.com/drive', alias: 'Drive', icon: 'https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png' },
     { url: 'https://docs.google.com/document/u/0/', alias: 'Docs', icon: 'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico' },
     { url: 'https://docs.google.com/spreadsheets/u/0/', alias: 'Sheets', icon: 'https://ssl.gstatic.com/docs/spreadsheets/favicon3.ico' },
