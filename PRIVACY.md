@@ -1,92 +1,132 @@
 # Privacy Policy for Arc-Inspired Workspaces
 
-**Last Updated:** October 26, 2024
+**Last Updated:** November 24, 2024
+
+## The Short Version
+
+**We do NOT collect, store, or transmit ANY of your data to any server.** Everything stays 100% on your device. We have no servers, no analytics, no tracking. Zero.
+
+---
 
 ## Overview
 
-Arc-Inspired Workspaces ("the Extension") is committed to protecting your privacy. This privacy policy explains how the Extension handles your data.
+Arc-Inspired Workspaces ("the Extension") is a browser sidebar for organizing tabs. This privacy policy explains how the Extension handles your data.
 
-## Data Collection
+## Our Privacy Promise
 
-### What Data We Collect
+- ✅ **100% Local** — All data is stored on your device only
+- ✅ **Zero Servers** — We do not operate any servers
+- ✅ **Zero Tracking** — No analytics, no telemetry, no tracking pixels
+- ✅ **Zero Data Collection** — We never see, collect, or access your data
+- ✅ **Open Source** — Verify everything by reading our code
 
-The Extension stores the following data **locally on your device only**:
+## What Data is Stored (Locally Only)
 
-- **Favorites:** URLs, titles, and icons of websites you add to your favorites
-- **Workspaces:** Names, organization, and items within your workspaces
-- **Tab bindings:** Temporary associations between workspace items and open tabs
-- **Preferences:** Your settings (theme, behavior options, etc.)
+The Extension stores the following data **on your device only** using Chrome's storage API:
 
-### What Data We Do NOT Collect
+| Data | Purpose |
+|------|---------|
+| Favorites | URLs and titles of sites you pin |
+| Workspaces | Names and items in your workspace folders |
+| Tab bindings | Which tab is linked to which favorite |
+| Preferences | Your settings (theme, behavior, etc.) |
+| Tab aliases | Custom names you give to tabs |
 
-- We do **NOT** collect any personal information
-- We do **NOT** track your browsing history
-- We do **NOT** collect data about which websites you visit
-- We do **NOT** transmit any data to external servers
-- We do **NOT** use analytics or tracking services
-- We do **NOT** sell or share any data with third parties
+**This data never leaves your browser.** We cannot see it. We cannot access it. It exists only on your device.
 
-## How Data is Stored
+## What Data We Access Temporarily
 
-### Local Storage Only
+Some features require temporary access to browser data. This data is **processed locally and immediately discarded** — never stored or transmitted:
 
-All data is stored **locally on your device** using Chrome's `chrome.storage.sync` API. This means:
+| Feature | Data Accessed | What Happens |
+|---------|---------------|--------------|
+| One-Click Setup | Browsing history | Analyzed locally to suggest favorites. Never stored or sent anywhere. |
+| Bookmark Import | Bookmark folders | Read locally to create workspaces. Never stored or sent anywhere. |
+| Screenshot Capture | Visible page content | Captured and saved to your clipboard or downloads. Never sent anywhere. |
 
-- Data stays on your devices
-- Data syncs across your Chrome browsers if you're signed in to Chrome sync
-- Google handles the syncing (we don't run any servers)
-- You can clear all data anytime by removing the extension
+## What We Do NOT Do
 
-### No External Servers
-
-The Extension does **not** communicate with any external servers. All functionality runs entirely within your browser.
+- ❌ We do **NOT** send any data to any server
+- ❌ We do **NOT** have servers to receive data
+- ❌ We do **NOT** collect personal information
+- ❌ We do **NOT** track your browsing activity
+- ❌ We do **NOT** use analytics services (Google Analytics, Mixpanel, etc.)
+- ❌ We do **NOT** use tracking pixels or cookies
+- ❌ We do **NOT** sell or share data (we don't have any to sell)
+- ❌ We do **NOT** monetize your data in any way
 
 ## Permissions Explained
 
-The Extension requests the following permissions:
+The Extension requests these permissions for specific features:
 
 | Permission | Why We Need It |
 |------------|----------------|
-| `sidePanel` | To display the vertical sidebar interface |
-| `storage` | To save your favorites, workspaces, and preferences locally |
-| `tabs` | To focus, create, and manage tabs when you click favorites/workspace items |
-| `favicon` | To display website icons for your favorites and workspace items |
+| `sidePanel` | Display the vertical sidebar interface |
+| `storage` | Save your favorites, workspaces, and preferences locally |
+| `tabs` | Manage tabs, implement smart tab switching |
+| `activeTab` | Get info about current tab for navigation controls |
+| `favicon` | Show website icons in favorites and workspaces |
+| `history` | One-click setup reads history locally to suggest favorites |
+| `bookmarks` | Import bookmark folders as workspaces |
+| `scripting` | Inject screenshot selection overlay on current page |
+| `tabCapture` | Capture visible tab for screenshots |
+| `clipboardWrite` | Copy screenshots to clipboard |
+| `downloads` | Save screenshots as files |
+| `offscreen` | Required for clipboard operations in Manifest V3 |
+| `host permissions` | Screenshot feature needs to work on any webpage |
 
-**Note:** We do NOT request `<all_urls>` or broad host permissions. We only access tab information, not page content.
+**Every permission is used for a specific user-facing feature. None are used to collect or transmit data.**
 
-## Your Rights
+## Chrome Sync
+
+If you have Chrome Sync enabled, your favorites and workspaces may sync across your devices via Google's servers. This is standard Chrome functionality:
+
+- Google handles the encryption and syncing
+- We have no access to this synced data
+- You can disable Chrome Sync in browser settings to keep data on one device only
+
+## Your Control
 
 You have full control over your data:
 
-- **View your data:** All data is stored in standard Chrome storage (viewable via developer tools)
-- **Export your data:** Use the "Export" feature in preferences to download your data as JSON
-- **Delete your data:** Remove the extension to delete all stored data, or use the "Clear All" option in preferences
-- **Opt-out of sync:** Disable Chrome sync in your browser settings to keep data local to one device
+- **View:** Data is in Chrome storage (viewable via developer tools)
+- **Export:** Settings → Export to download your data as JSON
+- **Delete:** Remove the extension to delete all data instantly
+- **Clear:** Use Clear All to reset specific data
 
-## Data Security
+## Open Source Verification
 
-- All data is stored using Chrome's secure storage APIs
-- No data is transmitted over the internet (except Chrome sync, which is encrypted by Google)
-- We do not implement any tracking, analytics, or telemetry
+This extension is **100% open source**. Don't trust us — verify:
+
+🔗 **Source Code:** https://github.com/SwajanJain/arc-style-workspaces
+
+You can read every line of code and confirm that:
+- No network requests are made to external servers
+- No data is collected or transmitted
+- All functionality runs locally in your browser
+
+## Third Parties
+
+We use **zero** third-party services:
+- No analytics (Google Analytics, Mixpanel, Amplitude, etc.)
+- No crash reporting (Sentry, Bugsnag, etc.)
+- No advertising
+- No external APIs
+
+The only external communication is Chrome Sync (if you have it enabled), which is handled by Google, not us.
 
 ## Changes to This Policy
 
-We may update this privacy policy from time to time. Changes will be posted in this document with an updated "Last Updated" date.
-
-## Open Source
-
-Arc-Inspired Workspaces is **open source**. You can review the code at:
-https://github.com/SwajanJain/arc-style-workspaces
-
-You can verify that we do not collect or transmit data by inspecting the source code.
+If we update this policy, changes will be posted here with an updated date. Major changes will be noted in the extension's changelog.
 
 ## Contact
 
-If you have questions about this privacy policy:
+Questions about privacy?
 
-- Open an issue on GitHub: https://github.com/SwajanJain/arc-style-workspaces/issues
-- Email: [Your contact email - optional]
+- GitHub Issues: https://github.com/SwajanJain/arc-style-workspaces/issues
 
-## Consent
+## Summary
 
-By installing and using Arc-Inspired Workspaces, you agree to this privacy policy.
+**Your data is yours. It stays on your device. We never see it, touch it, or transmit it. Period.**
+
+By installing Arc-Inspired Workspaces, you agree to this privacy policy.
