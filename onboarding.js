@@ -345,10 +345,10 @@ async function quickImport() {
       workspaces: []
     };
 
-    // 1. Import favorites from history (top 20, last 14 days)
+    // 1. Import favorites from history (top 15, last 14 days)
     const topSites = await analyzeHistory(14);
     const qualified = topSites.filter(site => site.visits >= 3);
-    const favoritesToImport = qualified.slice(0, 20);
+    const favoritesToImport = qualified.slice(0, 15);
 
     for (const site of favoritesToImport) {
       await Storage.addFavorite({
