@@ -64,12 +64,11 @@ The Extension requests these permissions for specific features:
 | `sidePanel` | Display the vertical sidebar interface |
 | `storage` | Save your favorites, workspaces, and preferences locally |
 | `tabs` | Manage tabs, implement smart tab switching |
-| `activeTab` | Get info about current tab for navigation controls |
+| `activeTab` | Get info about current tab for navigation controls and capture screenshots |
 | `favicon` | Show website icons in favorites and workspaces |
 | `history` | One-click setup reads history locally to suggest favorites |
 | `bookmarks` | Import bookmark folders as workspaces |
 | `scripting` | Inject screenshot selection overlay on current page |
-| `tabCapture` | Capture visible tab for screenshots |
 | `clipboardWrite` | Copy screenshots to clipboard |
 | `downloads` | Save screenshots as files |
 | `offscreen` | Required for clipboard operations in Manifest V3 |
