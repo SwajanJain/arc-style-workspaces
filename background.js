@@ -6,6 +6,7 @@ import { SmartSwitcher } from "./services/smart-switcher.js";
 let tabCache;
 let switcher;
 let state = null; // Cached state
+let activeTabId = null; // Track active tab for keyboard shortcuts
 
 // Migration system
 const STORAGE_KEY = 'state.v1';
@@ -89,13 +90,10 @@ chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ windowId: tab.windowId });
 });
 
-// Handle keyboard commands
-chrome.commands.onCommand.addListener(async (command) => {
-  if (command === 'toggle-panel') {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab) {
-      chrome.sidePanel.open({ windowId: tab.windowId });
-    }
+// Handle keyboard commands (no async/await before sidePanel.open to preserve user gesture)
+chrome.commands.onCommand.addListener((command) => {
+  if (command === 'toggle-panel' && activeTabId) {
+    chrome.sidePanel.open({ tabId: activeTabId });
   }
   // 'quick-open' command is handled in sidepanel.js
 });
@@ -334,13 +332,26 @@ chrome.runtime.onInstalled.addListener(async (details) => {
     await runMigrations();
   }
 
+  // Initialize active tab for keyboard shortcuts
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  activeTabId = tab?.id || null;
+
   // Initialize services after migration/install
   await initializeServices();
 });
 
 // Startup handler
 chrome.runtime.onStartup.addListener(async () => {
+  // Initialize active tab for keyboard shortcuts
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  activeTabId = tab?.id || null;
+
   await initializeServices();
+});
+
+// Track active tab changes for keyboard shortcuts
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  activeTabId = activeInfo.tabId;
 });
 
 // Keep service worker alive if needed (MV3 can sleep)
