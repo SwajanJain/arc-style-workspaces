@@ -1144,9 +1144,11 @@ body {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg);
   width: 100%;
-  max-width: 400px;
+  max-width: 320px;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .modal-title {
@@ -1356,6 +1358,135 @@ body {
 
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(18px);
+}
+
+/* Accordion Settings */
+.accordion-settings {
+  display: flex;
+  flex-direction: column;
+}
+
+.accordion-item {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.accordion-item:last-of-type {
+  border-bottom: none;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px 0;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.accordion-header:hover {
+  color: var(--accent-color);
+}
+
+.accordion-chevron {
+  color: var(--text-tertiary);
+  transition: transform 0.2s ease;
+}
+
+.accordion-header.open .accordion-chevron {
+  transform: rotate(90deg);
+}
+
+.accordion-content {
+  display: none;
+  padding-bottom: 12px;
+}
+
+.accordion-content.open {
+  display: block;
+}
+
+/* Accordion Links (for Quick Access) */
+.accordion-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  background: var(--bg-subtle);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.accordion-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.accordion-link svg {
+  opacity: 0.4;
+}
+
+.accordion-link:hover svg {
+  opacity: 0.7;
+}
+
+/* Accordion Rows (for settings) */
+.accordion-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.accordion-select {
+  padding: 5px 10px;
+  font-size: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.accordion-btn {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent-color);
+  background: transparent;
+  border: 1px solid var(--accent-color);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.accordion-btn:hover {
+  background: var(--accent-color);
+  color: white;
+}
+
+/* Accordion Footer */
+.accordion-footer {
+  padding: 16px 0 8px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
 }
 
 /* Search Results */
@@ -1709,6 +1840,153 @@ body {
   color: var(--text-primary);
   display: block;
   margin-bottom: 4px;
+}
+
+/* Screen 1: Pain Visual - Tab Chaos */
+.onboarding-pain-visual {
+  margin-bottom: var(--spacing-lg);
+}
+
+.tab-chaos {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  padding: 12px 16px;
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.mini-tab {
+  width: 18px;
+  height: 24px;
+  background: var(--gray-600);
+  border-radius: 3px 3px 0 0;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.mini-tab:nth-child(odd) {
+  opacity: 0.4;
+}
+
+.mini-tab:nth-child(3n) {
+  opacity: 0.8;
+}
+
+/* Screen 2: Stats Display */
+.onboarding-stats {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-xl);
+  margin: var(--spacing-lg) 0;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-color);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* Screen 2: Key Feature Highlight */
+.onboarding-key-feature {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+  text-align: center;
+}
+
+.onboarding-key-feature strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.onboarding-key-feature span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* Screen 3: Subtitle */
+.onboarding-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Screen 3: Immersive Steps */
+.immersive-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin: var(--spacing-lg) 0;
+  text-align: left;
+}
+
+.immersive-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.immersive-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.immersive-step {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.immersive-step strong {
+  color: var(--text-primary);
+}
+
+.immersive-step .step-number {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.immersive-step kbd {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-medium);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--text-primary);
 }
 
 /* ========================================

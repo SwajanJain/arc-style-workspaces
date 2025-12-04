@@ -599,39 +599,21 @@ function showOnboardingModal(onComplete) {
         <span class="progress-dot"></span>
         <span class="progress-dot"></span>
       </div>
-      <div class="onboarding-icon">🚀</div>
-      <h2 class="onboarding-title">Your most-used sites, always one click away</h2>
-      <p class="onboarding-description">
-        We'll analyze your recent browsing to create a personalized sidebar with your favorites and workspaces.
-      </p>
 
-      <div class="onboarding-benefits">
-        <div class="onboarding-benefit">
-          <div class="onboarding-benefit-icon">🎯</div>
-          <div class="onboarding-benefit-text">
-            <strong>One click, right tab</strong>
-            <span>Click a favorite to jump to an existing tab instead of opening duplicates.</span>
-          </div>
-        </div>
-        <div class="onboarding-benefit">
-          <div class="onboarding-benefit-icon">📁</div>
-          <div class="onboarding-benefit-text">
-            <strong>Group by context</strong>
-            <span>Separate Work, Personal, and side projects into their own workspaces.</span>
-          </div>
-        </div>
-        <div class="onboarding-benefit">
-          <div class="onboarding-benefit-icon">⚡</div>
-          <div class="onboarding-benefit-text">
-            <strong>Quick search</strong>
-            <span>Press <kbd>Cmd/Ctrl+K</kbd> to instantly find any tab, favorite, or workspace.</span>
-          </div>
+      <div class="onboarding-pain-visual">
+        <div class="tab-chaos">
+          ${Array(12).fill('<span class="mini-tab"></span>').join('')}
         </div>
       </div>
 
+      <h2 class="onboarding-title">40 tabs. Can't find anything.</h2>
+      <p class="onboarding-description">
+        We'll organize them.
+      </p>
+
       <div class="onboarding-cta">
         <button class="btn btn-primary btn-large" id="quick-import-btn">
-          Set up automatically
+          Set up from my browsing history
         </button>
 
         <button class="btn btn-secondary" id="skip-onboarding-btn">
@@ -642,16 +624,9 @@ function showOnboardingModal(onComplete) {
       <div class="onboarding-toggle">
         <label class="onboarding-checkbox-row">
           <input type="checkbox" id="add-google-workspace-checkbox" checked />
-          <div>
-            <div class="onboarding-checkbox-title">Include Google Workspace</div>
-            <div class="onboarding-checkbox-subtitle">Gmail, Calendar, Drive, Docs, Sheets, Slides, Meet, Chat</div>
-          </div>
+          <span class="onboarding-checkbox-title">Add Google Workspace</span>
         </label>
       </div>
-
-      <p class="onboarding-footer-note">
-        All analysis happens locally. No data leaves your browser.
-      </p>
     </div>
   `);
 
@@ -717,31 +692,6 @@ function showSuccessModal(summary, hasGoogleWorkspace = false) {
 
   // Handle empty or minimal import
   const hasContent = summary.favorites > 0 || totalWorkspaces > 0;
-  const isMinimal = summary.favorites < 3 && totalWorkspaces <= 2;
-
-  let summaryText;
-  if (!hasContent) {
-    summaryText = `
-      <p>We couldn't find enough browsing history to auto-populate your sidebar.</p>
-      <p>No worries — you can add favorites and workspaces manually as you browse.</p>
-    `;
-  } else if (isMinimal) {
-    summaryText = `
-      <p>
-        We found <strong>${summary.favorites}</strong> ${summary.favorites === 1 ? 'favorite' : 'favorites'} and
-        created <strong>${totalWorkspaces}</strong> ${totalWorkspaces === 1 ? 'workspace' : 'workspaces'}.
-      </p>
-      <p>Add more favorites by right-clicking any site in your sidebar.</p>
-    `;
-  } else {
-    summaryText = `
-      <p>
-        <strong>${summary.favorites}</strong> favorites and
-        <strong>${totalWorkspaces}</strong> workspaces created from your browsing history${hasGoogleWorkspace ? ' and Google Workspace' : ''}.
-      </p>
-      <p>Everything is editable — right-click to rename, reorder, or remove items.</p>
-    `;
-  }
 
   showModal('', `
     <div class="onboarding-success">
@@ -751,15 +701,29 @@ function showSuccessModal(summary, hasGoogleWorkspace = false) {
         <span class="progress-dot"></span>
       </div>
       <div class="onboarding-icon">${hasContent ? '✓' : '📋'}</div>
-      <h2 class="onboarding-title">${hasContent ? 'Setup complete' : 'Ready to customize'}</h2>
+      <h2 class="onboarding-title">${hasContent ? 'Your tabs, organized' : 'Ready to go'}</h2>
 
-      <div class="onboarding-summary">
-        ${summaryText}
+      ${hasContent ? `
+        <div class="onboarding-stats">
+          <div class="stat-item">
+            <span class="stat-number">${summary.favorites}</span>
+            <span class="stat-label">favorites</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">${totalWorkspaces}</span>
+            <span class="stat-label">workspaces</span>
+          </div>
+        </div>
+      ` : ''}
+
+      <div class="onboarding-key-feature">
+        <strong>One click = right tab</strong>
+        <span>No more duplicate Gmail tabs.</span>
       </div>
 
       <div class="onboarding-cta">
         <button class="btn btn-primary btn-large" id="next-tips-btn">
-          Quick tips
+          One more thing
         </button>
         <button class="btn btn-secondary" id="skip-tips-btn">
           Start browsing
@@ -779,20 +743,47 @@ function showSuccessModal(summary, hasGoogleWorkspace = false) {
 }
 
 /**
- * Show tips modal (Screen 3 - How to use + customize)
+ * Show tips modal (Screen 3 - Immersive experience setup)
  */
 function showTipsModal() {
   chrome.runtime.getPlatformInfo((info) => {
     const isMac = info?.os === 'mac';
-    const macTip = isMac ? `
-      <div class="onboarding-tip-item">
-        <span class="tip-number">4</span>
-        <div class="tip-text">
-          <strong>Mac: go full Arc-style</strong>
-          <span>Menu bar → View → turn off "Always Show Toolbar in Full Screen" for a cleaner vertical-tabs view.</span>
+
+    const platformInstructions = isMac ? `
+      <div class="immersive-section">
+        <div class="immersive-section-title">Hide the tab bar</div>
+        <div class="immersive-step">
+          <span class="step-number">1</span>
+          <span>Enter full screen</span>
+        </div>
+        <div class="immersive-step">
+          <span class="step-number">2</span>
+          <span>Menu bar → <strong>View</strong> → Uncheck <strong>"Always Show Toolbar in Full Screen"</strong></span>
         </div>
       </div>
-    ` : '';
+      <div class="immersive-section">
+        <div class="immersive-section-title">Toggle this panel</div>
+        <div class="immersive-step">
+          <span class="step-number">3</span>
+          <span>Press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>E</kbd> to show/hide</span>
+        </div>
+      </div>
+    ` : `
+      <div class="immersive-section">
+        <div class="immersive-section-title">Hide the tab bar</div>
+        <div class="immersive-step">
+          <span class="step-number">1</span>
+          <span>Press <kbd>F11</kbd> for full screen</span>
+        </div>
+      </div>
+      <div class="immersive-section">
+        <div class="immersive-section-title">Toggle this panel</div>
+        <div class="immersive-step">
+          <span class="step-number">2</span>
+          <span>Press <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>E</kbd> to show/hide</span>
+        </div>
+      </div>
+    `;
 
     showModal('', `
       <div class="onboarding-success">
@@ -801,32 +792,12 @@ function showTipsModal() {
           <span class="progress-dot completed"></span>
           <span class="progress-dot active"></span>
         </div>
-        <div class="onboarding-icon">💡</div>
-        <h2 class="onboarding-title">Three things to know</h2>
+        <div class="onboarding-icon">🖥️</div>
+        <h2 class="onboarding-title">Go immersive</h2>
+        <p class="onboarding-subtitle">No tabs. No clutter. Just content.</p>
 
-        <div class="onboarding-tips-list">
-          <div class="onboarding-tip-item">
-            <span class="tip-number">1</span>
-            <div class="tip-text">
-              <strong>Shift+Click for a fresh tab</strong>
-              <span>Need a second copy? Hold Shift and click a favorite or workspace item to open a new tab.</span>
-            </div>
-          </div>
-          <div class="onboarding-tip-item">
-            <span class="tip-number">2</span>
-            <div class="tip-text">
-              <strong>Right-click to customize</strong>
-              <span>Rename, move, or delete any favorite or workspace item.</span>
-            </div>
-          </div>
-          <div class="onboarding-tip-item">
-            <span class="tip-number">3</span>
-            <div class="tip-text">
-              <strong>Import more from bookmarks</strong>
-              <span>Open Settings (gear icon) and click Import Bookmarks.</span>
-            </div>
-          </div>
-          ${macTip}
+        <div class="immersive-steps">
+          ${platformInstructions}
         </div>
 
         <div class="onboarding-cta">
