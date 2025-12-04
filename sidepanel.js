@@ -966,26 +966,54 @@ function updateHighlight(items, index) {
 // Settings
 function showSettings() {
   showModal('Settings', `
-    <div class="settings-panel">
-      <div class="settings-group">
-        <div class="settings-group-title">BEHAVIOR</div>
-        <div class="setting-item">
-          <label class="setting-label">Open links in</label>
-          <div class="setting-control">
-            <select id="open-behavior">
-              <option value="smart-switch" ${state.preferences.openBehavior === 'smart-switch' ? 'selected' : ''}>Smart switch (Arc-style)</option>
+    <div class="accordion-settings">
+      <!-- Quick Access -->
+      <div class="accordion-item">
+        <button class="accordion-header" data-section="quick-access">
+          <span>Quick Access</span>
+          <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="accordion-content" id="quick-access">
+          <button type="button" class="accordion-link" id="open-history-btn">
+            <span>History</span>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="accordion-link" id="open-downloads-btn">
+            <span>Downloads</span>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="accordion-link" id="open-bookmarks-btn">
+            <span>Bookmarks</span>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="accordion-link" id="open-extensions-btn">
+            <span>Extensions</span>
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Preferences -->
+      <div class="accordion-item">
+        <button class="accordion-header" data-section="preferences">
+          <span>Preferences</span>
+          <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="accordion-content" id="preferences">
+          <div class="accordion-row">
+            <span>Open links in</span>
+            <select id="open-behavior" class="accordion-select">
+              <option value="smart-switch" ${state.preferences.openBehavior === 'smart-switch' ? 'selected' : ''}>Smart switch</option>
               <option value="same-tab" ${state.preferences.openBehavior === 'same-tab' ? 'selected' : ''}>Same tab</option>
               <option value="new-tab" ${state.preferences.openBehavior === 'new-tab' ? 'selected' : ''}>New tab</option>
             </select>
           </div>
-        </div>
-      </div>
-
-      <div class="settings-group">
-        <div class="settings-group-title">DISPLAY</div>
-        <div class="setting-item">
-          <label class="setting-label">Show open tabs list</label>
-          <div class="setting-control">
+          <div class="accordion-row">
+            <span>Show open tabs</span>
             <label class="toggle-switch">
               <input type="checkbox" id="show-open-tabs" ${state.preferences.showOpenTabs ? 'checked' : ''} />
               <span class="toggle-slider"></span>
@@ -994,53 +1022,34 @@ function showSettings() {
         </div>
       </div>
 
-      <div class="settings-group">
-        <div class="settings-group-title">ORGANIZATION</div>
-        <div class="setting-item">
-          <div class="setting-description">
-            <label class="setting-label">📊 Group tabs by site</label>
-            <p style="font-size: 12px; color: var(--text-tertiary); margin: 4px 0 0 0;">
-              Organize similar tabs together
-            </p>
+      <!-- Actions -->
+      <div class="accordion-item">
+        <button class="accordion-header" data-section="actions">
+          <span>Actions</span>
+          <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="accordion-content" id="actions">
+          <div class="accordion-row">
+            <span>Group tabs by site</span>
+            <button type="button" class="accordion-btn" id="group-tabs-btn">Group</button>
           </div>
-          <div class="setting-control">
-            <button type="button" class="btn btn-secondary" id="group-tabs-btn" style="font-size: 13px; padding: 6px 12px;">
-              Group Now
-            </button>
+          <div class="accordion-row">
+            <span>Import bookmarks</span>
+            <button type="button" class="accordion-btn" id="import-bookmarks-btn">Import</button>
           </div>
+          ${state.tabGrouping?.bannerDismissed ? `
+          <div class="accordion-row">
+            <span>Show grouping hints</span>
+            <button type="button" class="accordion-btn" id="show-hints-btn">Enable</button>
+          </div>
+          ` : ''}
         </div>
-        ${state.tabGrouping?.bannerDismissed ? `
-        <div class="setting-item">
-          <div class="setting-description">
-            <label class="setting-label">🔔 Show grouping hints</label>
-            <p style="font-size: 12px; color: var(--text-tertiary); margin: 4px 0 0 0;">
-              Re-enable banner suggestions
-            </p>
-          </div>
-          <div class="setting-control">
-            <button type="button" class="btn btn-secondary" id="show-hints-btn" style="font-size: 13px; padding: 6px 12px;">
-              Enable
-            </button>
-          </div>
-        </div>
-        ` : ''}
       </div>
 
-      <div class="settings-group">
-        <div class="settings-group-title">DATA</div>
-        <div class="setting-item">
-          <div class="setting-description">
-            <label class="setting-label">Import Bookmarks</label>
-            <p style="font-size: 12px; color: var(--text-tertiary); margin: 4px 0 0 0;">
-              Import all bookmark folders as workspaces
-            </p>
-          </div>
-          <div class="setting-control">
-            <button type="button" class="btn btn-secondary" id="import-bookmarks-btn" style="font-size: 13px; padding: 6px 12px;">
-              Import
-            </button>
-          </div>
-        </div>
+      <div class="accordion-footer">
+        ⌘+Shift+E to toggle panel
       </div>
     </div>
     <div class="form-actions">
@@ -1049,7 +1058,45 @@ function showSettings() {
     </div>
   `);
 
+  // Accordion toggle functionality
+  document.querySelectorAll('.accordion-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const section = header.dataset.section;
+      const content = document.getElementById(section);
+      const isOpen = content.classList.contains('open');
+
+      // Close all sections
+      document.querySelectorAll('.accordion-content').forEach(c => c.classList.remove('open'));
+      document.querySelectorAll('.accordion-header').forEach(h => h.classList.remove('open'));
+
+      // Open clicked section if it was closed
+      if (!isOpen) {
+        content.classList.add('open');
+        header.classList.add('open');
+      }
+    });
+  });
+
   document.getElementById('cancel-settings').addEventListener('click', hideModal);
+
+  // Quick Access buttons - focus existing tab or create new
+  async function openOrFocusTab(url) {
+    const tabs = await chrome.tabs.query({ url });
+    if (tabs.length > 0) {
+      // Focus existing tab
+      await chrome.tabs.update(tabs[0].id, { active: true });
+      await chrome.windows.update(tabs[0].windowId, { focused: true });
+    } else {
+      // Create new tab
+      await chrome.tabs.create({ url });
+    }
+    hideModal();
+  }
+
+  document.getElementById('open-history-btn').addEventListener('click', () => openOrFocusTab('chrome://history/'));
+  document.getElementById('open-downloads-btn').addEventListener('click', () => openOrFocusTab('chrome://downloads/'));
+  document.getElementById('open-bookmarks-btn').addEventListener('click', () => openOrFocusTab('chrome://bookmarks/'));
+  document.getElementById('open-extensions-btn').addEventListener('click', () => openOrFocusTab('chrome://extensions/'));
 
   // Group tabs button
   document.getElementById('group-tabs-btn')?.addEventListener('click', async () => {
