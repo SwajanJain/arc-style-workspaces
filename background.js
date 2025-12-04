@@ -7,6 +7,7 @@ let tabCache;
 let switcher;
 let state = null; // Cached state
 let activeTabId = null; // Track active tab for keyboard shortcuts
+let sidePanelPort = null; // Track if side panel is open via port connection
 
 // Migration system
 const STORAGE_KEY = 'state.v1';
@@ -93,9 +94,26 @@ chrome.action.onClicked.addListener((tab) => {
 // Handle keyboard commands (no async/await before sidePanel.open to preserve user gesture)
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'toggle-panel' && activeTabId) {
-    chrome.sidePanel.open({ tabId: activeTabId });
+    if (sidePanelPort) {
+      // Panel is open, send close message
+      sidePanelPort.postMessage({ type: 'close-panel' });
+    } else {
+      // Panel is closed, open it
+      chrome.sidePanel.open({ tabId: activeTabId });
+    }
   }
   // 'quick-open' command is handled in sidepanel.js
+});
+
+// Track side panel open/close state via port connection
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name === 'sidepanel') {
+    sidePanelPort = port;
+
+    port.onDisconnect.addListener(() => {
+      sidePanelPort = null;
+    });
+  }
 });
 
 // Tab event listeners - Keep cache fresh

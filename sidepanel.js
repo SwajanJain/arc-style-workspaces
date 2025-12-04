@@ -5,6 +5,14 @@ let favoritesGrid = null;
 let workspacesList = null;
 let searchTimeout = null;
 
+// Connect to background script for toggle functionality
+const panelPort = chrome.runtime.connect({ name: 'sidepanel' });
+panelPort.onMessage.addListener((message) => {
+  if (message.type === 'close-panel') {
+    window.close();
+  }
+});
+
 // Tab state tracking for indicators
 let tabStates = {
   favorites: {}, // favoriteId -> { tabCount, isActive, tabIds[] }
